@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "omokoda-core",
+    "omokoda-hermetic",
+]
+resolver = "2"
