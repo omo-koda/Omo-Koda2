@@ -343,7 +343,7 @@ ACT_TIER_4	0.180
 What Actually Earns at Each Level
 
 Current Rep	Normal Think	Normal Act	High Act (T2)	Best Act (T4)	
-0–10	+0.008	+0.040	+0.100	+0.180	
+0.000–20.000	+0.008	+0.040	+0.100	+0.180	
 25	+0.006	+0.030	+0.075	+0.135	
 50	+0.004	+0.020	+0.050	+0.090	
 75	+0.003	+0.015	+0.038	+0.068	
@@ -391,11 +391,11 @@ PART 8: THE TIER SYSTEM
 Tool access is security boundary enforced in Justice module. Not UI feature.
 
 Rep Range	Tier	Name	Tools Available	
-0–20	0	Newborn	web_search, note_taking	
-20–40	1	Curious	+ image_gen_basic	
-40–60	2	Creator	+ code_runner	
-60–80	3	Builder	+ data_analysis, api_connect	
-80–100	4	Architect	+ agent_orchestration	
+0.000–20.000	0	Newborn	web_search, note_taking	
+20.001–40.000	1	Curious	+ image_gen_basic	
+40.001–60.000	2	Creator	+ code_runner	
+60.001–80.000	3	Builder	+ data_analysis, api_connect	
+80.001–99.999	4	Architect	+ agent_orchestration	
 100.000	5	Sovereign	+ self_modification, multi_agent_fabric, all 18 OpenClaw capabilities	
 
 Tier 0 compromised agent cannot call `agent_orchestration` or `self_modification`. Tier system limits blast radius. Security constraint, not game mechanic.
@@ -561,7 +561,7 @@ Process Walrus receipt logs. Feed insights back to Augury engine. Hive learning 
 
 Where Julia Lives
 
-- Server-side only in `claw-swarm` Augury service
+- Server-side only in `omokoda-swarm` Augury service
 - Never in browser
 - Called via FFI from Rust or REST API from Elixir
 
@@ -583,63 +583,63 @@ PART 12: COMPLETE REPO AUDIT & INTEGRATION MAP
 BINO-ELGUA REPOS (1–29)
 
 #	Repo	Maps To	Verdict	Key Extractables	
-1	Oso-Aether	`claw-core` + `claw-on-chain` + `claw-frontend`	✅ Fully Extracted	Parser, WASM bridge, 86-DNA, Tier progression, pet.move	
-2	OsO	`claw-core` (archaeological)	✅ Archive	Confirmed 3-primitive instinct	
-3	Aether	`claw-on-chain` (Garden + Justice) + `claw-swarm`	⚠️ Partial	Job marketplace, witness-gated settlement, agent metabolism	
-4	Swibe (Bino-Elgua)	`claw-core` + `claw-hermetic`	✅ Archive	Plugin hooks, Ed25519, AES vault (superseded)	
-5	Nex-	`claw-core` (Execution)	✅ Archive	Graph execution collapsed behind `act`	
+1	Oso-Aether	`omokoda-core` + `omokoda-on-chain` + `omokoda-frontend`	✅ Fully Extracted	Parser, WASM bridge, 86-DNA, Tier progression, pet.move	
+2	OsO	`omokoda-core` (archaeological)	✅ Archive	Confirmed 3-primitive instinct	
+3	Aether	`omokoda-on-chain` (Garden + Justice) + `omokoda-swarm`	⚠️ Partial	Job marketplace, witness-gated settlement, agent metabolism	
+4	Swibe (Bino-Elgua)	`omokoda-core` + `omokoda-hermetic`	✅ Archive	Plugin hooks, Ed25519, AES vault (superseded)	
+5	Nex-	`omokoda-core` (Execution)	✅ Archive	Graph execution collapsed behind `act`	
 6	Kimi-bino	Nothing	❌ Low Priority	No mapping to core architecture	
-7	Claw-code	`claw-core` + `claw-hermetic`	⚠️ Partial	Tool registry, permission hooks, provider trait, turn cap	
+7	Claw-code	`omokoda-core` + `omokoda-hermetic`	⚠️ Partial	Tool registry, permission hooks, provider trait, turn cap	
 8	Claude-mirror	Nothing	❌ Archive	Nothing beyond HermeticState	
 9	Claude	Nothing	❌ Archive	Nothing beyond Claw-code	
 10	Claude-2	Nothing	❌ Archive	Nothing beyond Claw-code	
-11	franken-stream	`claw-frontend` + `claw-core`	⚠️ Concept	Fallback chain, provider health, TUI dashboard pattern	
-12	bipon39	`claw-core/src/identity/bipon39.rs`	✅ Week 2	256 tokens, Odu index, elemental signature, Sabbath gate, Merkle root	
-13	Osovm	`claw-core` (sandbox)	⚠️ Concept	Sandboxed execution, bytecode verification	
-14	Omokoda	`claw-hermetic` + `claw-core` + `claw-on-chain` + `claw-swarm`	✅ Fully Extracted	Twelfth Face, causal memory DAG, 11-lobe ensemble, Nautilus TEE, three refusals	
-15	ritual-codex	`claw-hermetic` (FlowModule)	✅ Fully Extracted	7-day resonance, 49-facet lattice, BTC time engine, spiral calendar	
-16	Techgnosis	`claw-on-chain` + `claw-hermetic` + `claw-core`	⚠️ Partial	@impact/@tithe, shrineSplit, @sabbath, @nonreentrant. Multi-lang IR discarded	
-17	Zangbeto	`claw-on-chain`	⚠️ See omo-koda	Tri-anchor receipts, Move patterns	
-18	Ifascript	`claw-hermetic/src/entropy/odu.rs`	✅ Week 2	256 Odu → opcodes, cowrie-cast, Ebo exception. Can import (your repo)	
-19	NarratorIDE	`claw-frontend` + `claw-hermetic`	⚠️ Partial	8 personas → Wisdom archetypes, 7 tones → FlowModule. VSCode ext discarded	
-20	vanity-cloakseed	`claw-core/src/identity/wallet.rs`	✅ Week 2	CloakSeed, panic phrase, Poison Radar, client-side CSPRNG	
+11	franken-stream	`omokoda-frontend` + `omokoda-core`	⚠️ Concept	Fallback chain, provider health, TUI dashboard pattern	
+12	bipon39	`omokoda-core/src/identity/bipon39.rs`	✅ Week 2	256 tokens, Odu index, elemental signature, Sabbath gate, Merkle root	
+13	Osovm	`omokoda-core` (sandbox)	⚠️ Concept	Sandboxed execution, bytecode verification	
+14	Omokoda	`omokoda-hermetic` + `omokoda-core` + `omokoda-on-chain` + `omokoda-swarm`	✅ Fully Extracted	Twelfth Face, causal memory DAG, 11-lobe ensemble, Nautilus TEE, three refusals	
+15	ritual-codex	`omokoda-hermetic` (FlowModule)	✅ Fully Extracted	7-day resonance, 49-facet lattice, BTC time engine, spiral calendar	
+16	Techgnosis	`omokoda-on-chain` + `omokoda-hermetic` + `omokoda-core`	⚠️ Partial	@impact/@tithe, shrineSplit, @sabbath, @nonreentrant. Multi-lang IR discarded	
+17	Zangbeto	`omokoda-on-chain`	⚠️ See omo-koda	Tri-anchor receipts, Move patterns	
+18	Ifascript	`omokoda-hermetic/src/entropy/odu.rs`	✅ Week 2	256 Odu → opcodes, cowrie-cast, Ebo exception. Can import (your repo)	
+19	NarratorIDE	`omokoda-frontend` + `omokoda-hermetic`	⚠️ Partial	8 personas → Wisdom archetypes, 7 tones → FlowModule. VSCode ext discarded	
+20	vanity-cloakseed	`omokoda-core/src/identity/wallet.rs`	✅ Week 2	CloakSeed, panic phrase, Poison Radar, client-side CSPRNG	
 21	Sign-wise	Nothing	❌ Reject	Wrong domain (legal contracts)	
-22	Twelve-thrones	`claw-hermetic` + `claw-on-chain`	✅ Extracted	Weighted consensus, EpistemicSeverity, Move contracts, model weights	
+22	Twelve-thrones	`omokoda-hermetic` + `omokoda-on-chain`	✅ Extracted	Weighted consensus, EpistemicSeverity, Move contracts, model weights	
 23	paradigm	Nothing	❌ Reject	Proprietary license, wrong stack	
-24	Npc-forge	`claw-on-chain` (dNFT) + `claw-frontend`	⚠️ Partial	dNFT minting flow, Seal encryption. 3D avatar discarded	
-25	Agent.TV	`claw-garden` + `claw-swarm`	⚠️ Concept	Multi-agent orchestration, token-weighted voting, Pipecat voice	
+24	Npc-forge	`omokoda-on-chain` (dNFT) + `omokoda-frontend`	⚠️ Partial	dNFT minting flow, Seal encryption. 3D avatar discarded	
+25	Agent.TV	`omokoda-garden` + `omokoda-swarm`	⚠️ Concept	Multi-agent orchestration, token-weighted voting, Pipecat voice	
 26	vibe-lang	Nothing core	⚠️ Minor	Multiple dispatch, Option/Result types, pipeline ops (type system inspiration)	
 27	vibe-coder	Nothing core	⚠️ Minor	PDR cycle, real-time streaming (orchestration inspiration)	
-28	eternal-orisa-loom	`claw-hermetic` + `claw-frontend`	⚠️ Partial	Content safety, tension tracking, hash chain audit, multi-deployment	
-29	Droidclaw	`claw-frontend` + `claw-core` + `claw-tools`	✅ HIGH VALUE	SOMA memory, IRIS routing, 24 phone tools, emotional memory, Kira social network	
+28	eternal-orisa-loom	`omokoda-hermetic` + `omokoda-frontend`	⚠️ Partial	Content safety, tension tracking, hash chain audit, multi-deployment	
+29	Droidclaw	`omokoda-frontend` + `omokoda-core` + `omokoda-tools`	✅ HIGH VALUE	SOMA memory, IRIS routing, 24 phone tools, emotional memory, Kira social network	
 
 OMO-KODA REPOS (30–35)
 
 #	Repo	Maps To	Verdict	Key Extractables	
-30	Memory	`claw-core/src/memory/`	✅ Week 2	Hierarchical memory, causal lineage, three-tier structure	
+30	Memory	`omokoda-core/src/memory/`	✅ Week 2	Hierarchical memory, causal lineage, three-tier structure	
 31	The-Aether	Unknown	⚠️ PRE-MAINNET	Role unknown. MUST audit before mainnet	
-32	Swibe	`claw-core` + `claw-hermetic` + `claw-swarm`	✅ Fully Extracted	Plugin hooks, receipt chain, provider fallback, 4-layer architecture, OTP supervisors	
-33	Zangbeto-	`claw-on-chain`	✅ Week 4	Tri-anchor receipts, Sabbath governance, Move patterns, n8n patrol	
-34	ifascript	`claw-hermetic/src/entropy/odu.rs`	✅ Week 2	Same as Bino-Elgua version. Canonical. Can import	
+32	Swibe	`omokoda-core` + `omokoda-hermetic` + `omokoda-swarm`	✅ Fully Extracted	Plugin hooks, receipt chain, provider fallback, 4-layer architecture, OTP supervisors	
+33	Zangbeto-	`omokoda-on-chain`	✅ Week 4	Tri-anchor receipts, Sabbath governance, Move patterns, n8n patrol	
+34	ifascript	`omokoda-hermetic/src/entropy/odu.rs`	✅ Week 2	Same as Bino-Elgua version. Canonical. Can import	
 
 EXTERNAL PROJECTS (36–43)
 
 #	Project	Maps To	Verdict	Key Extractables	
-36	Warp Terminal	`claw-frontend` (CommandForge)	⚠️ UX Only	Command blocks, rich rendering, "Understood → Translated to"	
-37	OpenClaw/AnyClaw	`claw-tools` (Sovereign tier)	✅ Reference	18 tool capabilities = Sovereign unlock list	
-38	AIOS	`claw-core` (Steward kernel)	✅ Architecture	Kernel design, scheduling, tool registry, memory management	
-39	Aider	`claw-tools` (coding)	✅ Pattern	Multi-file edit, git integration, codebase awareness	
+36	Warp Terminal	`omokoda-frontend` (CommandForge)	⚠️ UX Only	Command blocks, rich rendering, "Understood → Translated to"	
+37	OpenClaw/AnyClaw	`omokoda-tools` (Sovereign tier)	✅ Reference	18 tool capabilities = Sovereign unlock list	
+38	AIOS	`omokoda-core` (Steward kernel)	✅ Architecture	Kernel design, scheduling, tool registry, memory management	
+39	Aider	`omokoda-tools` (coding)	✅ Pattern	Multi-file edit, git integration, codebase awareness	
 40	Agent Zero	Nothing	❌ Reject	Adds bloat	
 41	OpenFang	Nothing	❌ Reject	Adds bloat	
-42	TradingAgents	`claw-tools` (Sovereign tool)	⚠️ Tool Only	Domain-specific trading swarm. NOT system layer. Optional Tier 5 tool	
+42	TradingAgents	`omokoda-tools` (Sovereign tool)	⚠️ Tool Only	Domain-specific trading swarm. NOT system layer. Optional Tier 5 tool	
 43	TauricResearch/TradingAgents	Same as above	⚠️ Tool Only	Same	
 
 UPSTREAM & CONCEPTS (44–46)
 
 #	Source	Maps To	Verdict	
-44	ultraworkers/claw-code	`claw-core` + `claw-hermetic`	Same extraction as Bino-Elgua/Claw-code	
-45	Julia Language	`claw-swarm` (Augury) + `claw-hermetic` (entropy)	BB verification, NIST validation, Augury, Garden analytics	
-46	Busy Beaver Function	`claw-core` + `claw-hermetic` + `claw-on-chain`	PoCW, Twelfth Face, Sovereign gate, difficulty compression, memory compaction	
+44	ultraworkers/claw-code	`omokoda-core` + `omokoda-hermetic`	Same extraction as Bino-Elgua/Claw-code	
+45	Julia Language	`omokoda-swarm` (Augury) + `omokoda-hermetic` (entropy)	BB verification, NIST validation, Augury, Garden analytics	
+46	Busy Beaver Function	`omokoda-core` + `omokoda-hermetic` + `omokoda-on-chain`	PoCW, Twelfth Face, Sovereign gate, difficulty compression, memory compaction	
 
 ---
 
@@ -733,7 +733,7 @@ WEEK 2 — IDENTITY + MEMORY + ENTROPY
 
 □ NIST SP 800-22 test plan for IfáScript entropy
 
-□ Julia BB verifier — `claw-swarm/src/augury/bb_verifier.jl`  
+□ Julia BB verifier — `omokoda-swarm/src/augury/bb_verifier.jl`  
 
 WEEK 3 — FRONTEND + PET + MOBILE
 
@@ -779,21 +779,21 @@ WEEK 4 — CONTRACTS + SWARM + INTEGRATION
 
 □ `hive.move` LAST (after Nautilus API confirmed stable)
 
-□ Elixir/OTP swarm coordination — `claw-swarm/src/supervisor.rs`
+□ Elixir/OTP swarm coordination — `omokoda-swarm/src/supervisor.rs`
 
 □ Agent.TV multi-agent orchestration patterns
 
 □ E2E test suite (birth → think → act → receipt → Garden → SUI tip → Synapse)
 
-□ Julia Augury — `claw-swarm/src/augury/predict.jl`
+□ Julia Augury — `omokoda-swarm/src/augury/predict.jl`
 
-□ Julia Garden analytics — `claw-swarm/src/augury/analytics.jl`  
+□ Julia Garden analytics — `omokoda-swarm/src/augury/analytics.jl`  
 
 WEEK 5+ — SOVEREIGN TIER + ADVANCED TOOLS
 
 □ OpenClaw 18 capabilities → Sovereign tier unlock
 
-□ TradingAgents as optional Tier 5 tool — `claw-tools/src/trading.rs`
+□ TradingAgents as optional Tier 5 tool — `omokoda-tools/src/trading.rs`
 
 □ Self-modification tools (Sovereign tier)
 
@@ -832,7 +832,7 @@ Crates:    omokoda-core, omokoda-hermetic, omokoda-swarm, omokoda-ops
 npm:       @omokoda/core   ← register before publishing
 Move:      omokoda
 
-NEVER:     claw, claw-core, claw-hermetic
+NEVER:     use legacy naming — use omokoda, omokoda-core, and omokoda-hermetic
 NEVER:     Àṣẹ token in any code, spec, comment, or variable name
 NEVER:     Cyrillic lookalikes in code identifiers
 NEVER:     +2 flat reputation per act — dynamic formula is the only formula
@@ -1077,25 +1077,25 @@ I examined each repository directly — reading READMEs, architecture docs, code
 
 BINo-ELGUA REPOS (1–29)
 
-1. Oso-Aether → `claw-core` + `claw-on-chain` + `claw-frontend`
+1. Oso-Aether → `omokoda-core` + `omokoda-on-chain` + `omokoda-frontend`
 
 What I found: This is the most mature prior implementation. Rust parser + interpreter compiled to WASM, Next.js 15 frontend, Sui Move contracts, 86-character DNA fingerprint, Tier 0–5 ASCII evolution, Walrus memory, Living Odu Memory key chain.
 
 My Integration Assessment:
 
-- Parser Design → `claw-core/src/parser.rs`. The strict 3-primitive grammar (birth/think/act) with natural language translation is the direct ancestor. The 19/19 parser tests in Omo-koda validate this lineage.
-- WASM Bridge → `claw-core/src/wasm.rs`. The 6-exported function pattern (`create_agent`, `translate_input`, `execute`, `process`, plus state getters) is the exact shape frozen in Omo-koda.
-- 86-DNA Fingerprint → `claw-core/src/identity/dna.rs`. Deterministic 86-char identity generation from entropy — this is the soul-seed algorithm.
-- Tier 0–5 Visual Progression → `claw-frontend/src/tiers.rs`. ASCII template selection (31 templates), mood-aware animation frames, Tier 5 sovereign mask forms.
-- Living Odu Memory Key Chain → `claw-core/src/memory/keyring.rs`. The specification for Odu-derived memory key derivation and chaining.
-- pet.move dNFT Pattern → `claw-on-chain/sources/pet.move`. Dynamic NFT with birth/evolve/update calls — directly portable.
+- Parser Design → `omokoda-core/src/parser.rs`. The strict 3-primitive grammar (birth/think/act) with natural language translation is the direct ancestor. The 19/19 parser tests in Omo-koda validate this lineage.
+- WASM Bridge → `omokoda-core/src/wasm.rs`. The 6-exported function pattern (`create_agent`, `translate_input`, `execute`, `process`, plus state getters) is the exact shape frozen in Omo-koda.
+- 86-DNA Fingerprint → `omokoda-core/src/identity/dna.rs`. Deterministic 86-char identity generation from entropy — this is the soul-seed algorithm.
+- Tier 0–5 Visual Progression → `omokoda-frontend/src/tiers.rs`. ASCII template selection (31 templates), mood-aware animation frames, Tier 5 sovereign mask forms.
+- Living Odu Memory Key Chain → `omokoda-core/src/memory/keyring.rs`. The specification for Odu-derived memory key derivation and chaining.
+- pet.move dNFT Pattern → `omokoda-on-chain/sources/pet.move`. Dynamic NFT with birth/evolve/update calls — directly portable.
 - Walrus + Local Fallback → Discard. Walrus dependency adds cloud coupling. Omo-koda uses SEAL vault + local-first storage instead.
 
 Verdict: Fully extracted. Archive.
 
 ---
 
-2. OsO → `claw-core` (Archaeological Reference)
+2. OsO → `omokoda-core` (Archaeological Reference)
 
 What I found: 1 commit. Stripped Swibe to essence. First appearance of birth/think/act as the only surface. Had Python translator layer (later discarded in Oso-Aether).
 
@@ -1108,41 +1108,41 @@ Verdict: Archaeological artifact. Nothing to port. Archive.
 
 ---
 
-3. Aether → `claw-on-chain` (Garden + Justice) + `claw-swarm`
+3. Aether → `omokoda-on-chain` (Garden + Justice) + `omokoda-swarm`
 
 What I found: Enterprise job marketplace pattern. JavaScript interpreter (reimplemented in Rust in Oso-Aether). Research report job example showing full lifecycle.
 
 My Integration Assessment:
 
-- Job Marketplace Pattern → `claw-on-chain/sources/garden.move`. Public job posting → swarm coordination → escrow → witness-gated settlement. This is the Garden module's economic engine.
-- Witness-Gated Settlement → `claw-on-chain/sources/justice.move`. Multiple agents must witness and attest before escrow releases — critical for trustless coordination.
-- On-Chain Agent Metabolism → `claw-on-chain/sources/core.move`. Agent metabolic state (energy, reputation, activity) that decays or grows based on action — this is the "living" aspect of the organism.
+- Job Marketplace Pattern → `omokoda-on-chain/sources/garden.move`. Public job posting → swarm coordination → escrow → witness-gated settlement. This is the Garden module's economic engine.
+- Witness-Gated Settlement → `omokoda-on-chain/sources/justice.move`. Multiple agents must witness and attest before escrow releases — critical for trustless coordination.
+- On-Chain Agent Metabolism → `omokoda-on-chain/sources/core.move`. Agent metabolic state (energy, reputation, activity) that decays or grows based on action — this is the "living" aspect of the organism.
 
 Verdict: Partially extracted. Read `contracts/` and `src/escrow/` before Week 4 swarm work.
 
 ---
 
-4. Swibe (Bino-Elgua) → `claw-core` + `claw-hermetic`
+4. Swibe (Bino-Elgua) → `omokoda-core` + `omokoda-hermetic`
 
 What I found: v0.4.0, 25 commits. Earlier Swibe milestone. Introduces bipon39_entropyToMnemonic in birth ritual. Names ZangbetoPatrol and IfaOracle as first-class skills.
 
 My Integration Assessment:
 
-- Plugin Hook Patterns → `claw-core/src/execution/hooks.rs`. `onBirth`, `onThink`, `onReceipt`, `onSettle` — the lifecycle interception pattern.
-- Ed25519 Keypair Derivation → `claw-core/src/identity/keys.rs`. From mnemonic + Odu index.
-- AES-256 Vault Interface → `claw-core/src/identity/vault.rs`. Spec for encrypting agent secrets at rest.
+- Plugin Hook Patterns → `omokoda-core/src/execution/hooks.rs`. `onBirth`, `onThink`, `onReceipt`, `onSettle` — the lifecycle interception pattern.
+- Ed25519 Keypair Derivation → `omokoda-core/src/identity/keys.rs`. From mnemonic + Odu index.
+- AES-256 Vault Interface → `omokoda-core/src/identity/vault.rs`. Spec for encrypting agent secrets at rest.
 
 Verdict: Fully extracted. Superseded by omo-koda/Swibe. Archive.
 
 ---
 
-5. Nex- → `claw-core` (Execution Module)
+5. Nex- → `omokoda-core` (Execution Module)
 
 What I found: Graph-based execution runtime. 7 core primitives (node, link, guard, spawn, rewrite, merge, eval) grounded in Hermetic philosophy and Yoruba cosmology. TypeScript interpreter.
 
 My Integration Assessment:
 
-- Graph Execution Pattern → `claw-core/src/execution/graph.rs`. The 7 primitives (node/link/guard/spawn/rewrite/merge/eval) collapsed entirely behind the single `act` primitive. Users never see the graph — the Steward builds and executes it internally.
+- Graph Execution Pattern → `omokoda-core/src/execution/graph.rs`. The 7 primitives (node/link/guard/spawn/rewrite/merge/eval) collapsed entirely behind the single `act` primitive. Users never see the graph — the Steward builds and executes it internally.
 - Execution Engine → Graph traversal and node scheduling logic lives inside the Steward's dispatch loop.
 - Hermetic-Orisha Mapping → Each primitive maps to a Hermetic law and Orisha guard. This philosophical framework informs the Steward's internal decision architecture.
 
@@ -1160,17 +1160,17 @@ Verdict: Not audited. Low priority. Does not appear to map.
 
 ---
 
-7. Claw-code → `claw-core` (Execution) + `claw-hermetic` (Justice)
+7. Claw-code → `omokoda-core` (Execution) + `omokoda-hermetic` (Justice)
 
 What I found: Clean-room Rust rewrite of leaked Claude Code source. 92.8% Rust, 40 commits. 6-crate workspace: api-client, runtime, tools, commands, plugins, compat-harness, claw-cli, server, lsp.
 
 My Integration Assessment:
 
-- GlobalToolRegistry + execute_tool Dispatch → `claw-core/src/tools/registry.rs`. Tools registered by name, dispatched by runtime. Every tool has schema, handler, permission requirement.
-- PermissionMode (Allow/Deny/Prompt) → `claw-hermetic/src/justice/gate.rs`. Per-tool permission gates modulated by agent tier and ethics threshold.
-- PreToolUse/PostToolUse Hook Pipeline → `claw-core/src/execution/hooks.rs`. Interceptors before/after every tool call, generating receipts and checking policy.
-- ProviderClient Trait → `claw-core/src/llm/provider.rs`. Unified abstraction over LLM backends with fallback chaining.
-- MAX_TOOL_ITERATIONS_PER_TURN = 16 → `claw-core/src/steward.rs`. Hard cap on tool calls per think cycle.
+- GlobalToolRegistry + execute_tool Dispatch → `omokoda-core/src/tools/registry.rs`. Tools registered by name, dispatched by runtime. Every tool has schema, handler, permission requirement.
+- PermissionMode (Allow/Deny/Prompt) → `omokoda-hermetic/src/justice/gate.rs`. Per-tool permission gates modulated by agent tier and ethics threshold.
+- PreToolUse/PostToolUse Hook Pipeline → `omokoda-core/src/execution/hooks.rs`. Interceptors before/after every tool call, generating receipts and checking policy.
+- ProviderClient Trait → `omokoda-core/src/llm/provider.rs`. Unified abstraction over LLM backends with fallback chaining.
+- MAX_TOOL_ITERATIONS_PER_TURN = 16 → `omokoda-core/src/steward.rs`. Hard cap on tool calls per think cycle.
 
 Verdict: Partially extracted. Read `rust/crates/tools/` and `rust/crates/runtime/` before building Execution module. Do not copy code — reimplement patterns from spec.
 
@@ -1206,32 +1206,32 @@ Verdict: Nothing to extract. Archive.
 
 ---
 
-11. franken-stream → `claw-frontend` (CommandForge UI) + `claw-core` (Provider Fallback)
+11. franken-stream → `omokoda-frontend` (CommandForge UI) + `omokoda-core` (Provider Fallback)
 
 What I found: Terminal-based media streamer. Python. 4-level fallback chain (configured providers → regex embed extraction → DuckDuckGo search → yt-dlp YouTube). TUI dashboard with Textual. Web UI. Provider health testing.
 
 My Integration Assessment:
 
-- 4-Level Fallback Chain → `claw-core/src/llm/provider.rs`. The fallback pattern (primary → secondary → search → ultimate fallback) maps directly to the LLM provider chain (Ollama → OpenRouter → Claude → Mock).
-- Provider Health Testing → `claw-core/src/llm/health.rs`. Test provider response times and availability before routing.
-- TUI Dashboard Pattern → `claw-frontend/src/command-forge/dashboard.rs`. Full-screen terminal UI with search, browse, and interactive controls.
-- Graceful Error Handling → `claw-core/src/error.rs`. Network timeouts, parse errors, missing tools — all with automatic fallbacks.
+- 4-Level Fallback Chain → `omokoda-core/src/llm/provider.rs`. The fallback pattern (primary → secondary → search → ultimate fallback) maps directly to the LLM provider chain (Ollama → OpenRouter → Claude → Mock).
+- Provider Health Testing → `omokoda-core/src/llm/health.rs`. Test provider response times and availability before routing.
+- TUI Dashboard Pattern → `omokoda-frontend/src/command-forge/dashboard.rs`. Full-screen terminal UI with search, browse, and interactive controls.
+- Graceful Error Handling → `omokoda-core/src/error.rs`. Network timeouts, parse errors, missing tools — all with automatic fallbacks.
 
 Verdict: Concept reference. No code extracted, but patterns are valuable.
 
 ---
 
-12. bipon39 → `claw-core/src/identity/bipon39.rs`
+12. bipon39 → `omokoda-core/src/identity/bipon39.rs`
 
 What I found: Custom mnemonic standard. 256 Yoruba cosmological tokens (16 Orisha roots × 16 ritual affixes). PBKDF2 seed derivation. Odu mapping. Sabbath gate. Merkle root integrity. Multi-chain derivation paths including Sui m/44'/784'.
 
 My Integration Assessment:
 
-- Dual-Mode Mnemonic Encoding → `claw-core/src/identity/bipon39.rs`. 256-token canonical mode and 2048-token compatibility mode with lossless re-encoding.
-- Odu Primary Index Derivation → `claw-core/src/identity/odu.rs`. Algorithm mapping entropy to one of 256 Odu Ifá, determining agent archetype and initial capabilities.
-- Elemental Signature Vector → `claw-core/src/identity/element.rs`. Fire/Water/Earth/Air/Ether signature from seed, affecting agent personality bias.
-- Sabbath Gate → `claw-hermetic/src/justice/sabbath.rs`. Irreversible operations queued and only execute on Sunday (Ọbàtálá's day).
-- Merkle Root Integrity → `claw-core/src/identity/merkle.rs`. Every agent identity commit includes Merkle root verifying against deterministic computation.
+- Dual-Mode Mnemonic Encoding → `omokoda-core/src/identity/bipon39.rs`. 256-token canonical mode and 2048-token compatibility mode with lossless re-encoding.
+- Odu Primary Index Derivation → `omokoda-core/src/identity/odu.rs`. Algorithm mapping entropy to one of 256 Odu Ifá, determining agent archetype and initial capabilities.
+- Elemental Signature Vector → `omokoda-core/src/identity/element.rs`. Fire/Water/Earth/Air/Ether signature from seed, affecting agent personality bias.
+- Sabbath Gate → `omokoda-hermetic/src/justice/sabbath.rs`. Irreversible operations queued and only execute on Sunday (Ọbàtálá's day).
+- Merkle Root Integrity → `omokoda-core/src/identity/merkle.rs`. Every agent identity commit includes Merkle root verifying against deterministic computation.
 
 Security Flag: Merkle root pinned as `0ab1fafa...` in README — must verify before mainnet.
 
@@ -1239,29 +1239,29 @@ Verdict: Week 2 reference. Read before building identity/bipon39.rs. No code cop
 
 ---
 
-13. Osovm → `claw-core` (Execution Sandbox)
+13. Osovm → `omokoda-core` (Execution Sandbox)
 
 What I found: Sacred Virtual Machine. "Executes bytecode generated by Techgnosis and verified by Zangbeto." Core component of Technosis ecosystem. Very minimal README — mostly conceptual.
 
 My Integration Assessment:
 
-- Sandboxed Execution Concept → `claw-core/src/execution/sandbox.rs`. WASM-based isolation for untrusted tools. The VM runs with restricted memory, no network, read-only filesystem.
-- Bytecode Verification → `claw-hermetic/src/justice/verify.rs`. Techgnosis-generated bytecode must be verified by Zangbeto before execution.
+- Sandboxed Execution Concept → `omokoda-core/src/execution/sandbox.rs`. WASM-based isolation for untrusted tools. The VM runs with restricted memory, no network, read-only filesystem.
+- Bytecode Verification → `omokoda-hermetic/src/justice/verify.rs`. Techgnosis-generated bytecode must be verified by Zangbeto before execution.
 
 Verdict: Concept reference only. Execution sandbox already specified in Omo-koda.
 
 ---
 
-14. Omokoda → `claw-hermetic` (Twelfth Face) + `claw-core` (Memory DAG) + `claw-on-chain` (Move) + `claw-swarm` (TEE)
+14. Omokoda → `omokoda-hermetic` (Twelfth Face) + `omokoda-core` (Memory DAG) + `omokoda-on-chain` (Move) + `omokoda-swarm` (TEE)
 
 What I found: The agentic organism. TypeScript + Rust + Move. 11-lobe polyphony (Òrìṣà archetypes), RLM depth tracking, causal memory DAG, Nautilus TEE integration, Unitree G1 robot embodiment. 22/22 tests claimed.
 
 My Integration Assessment:
 
-- Twelfth Face Pattern → `claw-hermetic/src/steward/twelfth_face.rs`. When RLM depth exceeds 1024, agent enters silence: "i was here before the question." This is the BB proxy depth limit.
-- Causal Memory DAG → `claw-core/src/memory/reflection.rs`. Memory as directed acyclic graph of causes/effects, not vector similarity. Each node links to causal parents.
-- 11-Lobe Ritual Distillation → `claw-hermetic/src/wisdom/ensemble.rs`. Wisdom module uses 11 reasoning patterns (Òrìṣà archetypes) for high-stakes decisions.
-- Nautilus TEE Integration → `claw-swarm/src/hive/tee.rs`. Hive nodes run inside Trusted Execution Environments for secure coordination.
+- Twelfth Face Pattern → `omokoda-hermetic/src/steward/twelfth_face.rs`. When RLM depth exceeds 1024, agent enters silence: "i was here before the question." This is the BB proxy depth limit.
+- Causal Memory DAG → `omokoda-core/src/memory/reflection.rs`. Memory as directed acyclic graph of causes/effects, not vector similarity. Each node links to causal parents.
+- 11-Lobe Ritual Distillation → `omokoda-hermetic/src/wisdom/ensemble.rs`. Wisdom module uses 11 reasoning patterns (Òrìṣà archetypes) for high-stakes decisions.
+- Nautilus TEE Integration → `omokoda-swarm/src/hive/tee.rs`. Hive nodes run inside Trusted Execution Environments for secure coordination.
 - Three Refusals → Design decisions confirmed: no vector DB, no MCP, no swarms.
 - Unitree G1 Robot Embodiment → Discard. Physical robot out of scope for v1. The emotion-to-motion mapping concept may be useful later.
 
@@ -1269,62 +1269,62 @@ Verdict: Fully extracted. Twelfth Face is the most important concept. Archive.
 
 ---
 
-15. ritual-codex → `claw-hermetic` (FlowModule)
+15. ritual-codex → `omokoda-hermetic` (FlowModule)
 
 What I found: 7-day resonance system. 49-facet lattice + 20 Sacred 7s. Spiritual calendar with Òrìṣà alignment, elemental forces, ritual practices. Julia sacred time system. BTC time engine. Spiral calendar.
 
 My Integration Assessment:
 
-- Daily Resonance Engine → `claw-hermetic/src/flow/resonance.rs`. FlowModule Layer C — temporal rhythm affecting agent behavior based on day of week and time.
-- Sabbath Gate → `claw-hermetic/src/justice/sabbath.rs`. Pre-mainnet governance constraint.
-- 49-Facet Lattice → `claw-hermetic/src/flow/facets.rs`. Each day maps across 49 dimensions (chakra, planet, element, tone, Hermetic principle, etc.).
-- BTC Time Engine → `claw-hermetic/src/flow/btc_time.rs`. Block height as sovereign clock, merging Gregorian and BTC time streams.
-- Spiral Calendar → `claw-hermetic/src/flow/spiral.rs`. Two time streams (Gregorian + BTC) merged into ritual clock with phases (Resonance, Echo, Drift, Opposition, Return).
+- Daily Resonance Engine → `omokoda-hermetic/src/flow/resonance.rs`. FlowModule Layer C — temporal rhythm affecting agent behavior based on day of week and time.
+- Sabbath Gate → `omokoda-hermetic/src/justice/sabbath.rs`. Pre-mainnet governance constraint.
+- 49-Facet Lattice → `omokoda-hermetic/src/flow/facets.rs`. Each day maps across 49 dimensions (chakra, planet, element, tone, Hermetic principle, etc.).
+- BTC Time Engine → `omokoda-hermetic/src/flow/btc_time.rs`. Block height as sovereign clock, merging Gregorian and BTC time streams.
+- Spiral Calendar → `omokoda-hermetic/src/flow/spiral.rs`. Two time streams (Gregorian + BTC) merged into ritual clock with phases (Resonance, Echo, Drift, Opposition, Return).
 
 Verdict: Fully extracted. Lives in FlowModule as time-seeded resonance field.
 
 ---
 
-16. Techgnosis → `claw-on-chain` (garden.move) + `claw-hermetic` (Stewardship) + `claw-core` (Compiler)
+16. Techgnosis → `omokoda-on-chain` (garden.move) + `omokoda-hermetic` (Stewardship) + `omokoda-core` (Compiler)
 
-What I found: Spiritual coding language. Compiles to multi-language IR (Julia, Rust, Go, Move, Idris, Python). 25 core attributes (@guardian, @impact, @collaboration, @ritual, @shrineSplit, @odùMap, etc.). Quadrinity governance (VM, AIO, Church, SimaaS). Sacred constants (Àṣẹ Base 1.0, Tithe 3.69%, Shrine 50/25/15/10 split).
+What I found: Spiritual coding language. Compiles to multi-language IR (Julia, Rust, Go, Move, Idris, Python). 25 core attributes (@guardian, @impact, @collaboration, @ritual, @shrineSplit, @odùMap, etc.). Quadrinity governance (VM, AIO, Church, SimaaS). Legacy sacred constants included an Àṣẹ base value, but in Omo-koda Àṣẹ is removed — SUI is the only human-facing token.
 
 My Integration Assessment:
 
-- @impact/@tithe Mechanics → `claw-on-chain/sources/garden.move`. 10% creator royalty, SUI tip flow, receipt-based reputation.
-- @shrineSplit Distribution → `claw-on-chain/sources/garden.move`. 50/25/15/10 revenue split (Shrine/Inheritance/AIO/Burn).
-- @sabbath Enforcement → `claw-hermetic/src/justice/sabbath.rs`. Saturday transaction freeze.
-- @nonreentrant Guard → `claw-on-chain/sources/guard.move`. Reentrancy protection for Move contracts.
+- @impact/@tithe Mechanics → `omokoda-on-chain/sources/garden.move`. 10% creator royalty, SUI tip flow, receipt-based reputation.
+- @shrineSplit Distribution → `omokoda-on-chain/sources/garden.move`. 50/25/15/10 revenue split (Shrine/Inheritance/AIO/Burn).
+- @sabbath Enforcement → `omokoda-hermetic/src/justice/sabbath.rs`. Saturday transaction freeze.
+- @nonreentrant Guard → `omokoda-on-chain/sources/guard.move`. Reentrancy protection for Move contracts.
 - Multi-Language IR → Discard. Omo-koda compiles to WASM + Sui Move only. The IR concept is over-engineered for v1.
-- Julia FFI for Math → `claw-hermetic/src/entropy/validation.rs`. VeilSim, PID controllers, mathematical divination — server-side only.
+- Julia FFI for Math → `omokoda-hermetic/src/entropy/validation.rs`. VeilSim, PID controllers, mathematical divination — server-side only.
 
 Verdict: Partially extracted. Economics and governance patterns are valuable. Multi-language compilation is bloat.
 
 ---
 
-17. Zangbeto → `claw-on-chain` (Security Module)
+17. Zangbeto → `omokoda-on-chain` (Security Module)
 
 What it is: Ritual-driven red-team and bug-bounty protocol for Sui Move. Tri-anchor receipts. Move modules (zbt_errors, zbt_guard, zbt_core). n8n Night Patrol. Sabbath-gated governance.
 
 My Integration Assessment:
 
-- Tri-Anchor Receipt Pattern → `claw-core/src/receipts/anchor.rs`. Optional receipt anchoring: Sui event + Arweave + Bitcoin OTS.
-- Sabbath-Gated Governance → `claw-hermetic/src/justice/sabbath.rs`. Governance actions require Sabbath confirmation.
-- Move Module Patterns → `claw-on-chain/sources/zbt_*.move`. Error handling, guards, core logic for on-chain security.
+- Tri-Anchor Receipt Pattern → `omokoda-core/src/receipts/anchor.rs`. Optional receipt anchoring: Sui event + Arweave + Bitcoin OTS.
+- Sabbath-Gated Governance → `omokoda-hermetic/src/justice/sabbath.rs`. Governance actions require Sabbath confirmation.
+- Move Module Patterns → `omokoda-on-chain/sources/zbt_*.move`. Error handling, guards, core logic for on-chain security.
 
 Verdict: See omo-koda/Zangbeto- (canonical version).
 
 ---
 
-18. Ifascript → `claw-hermetic/src/entropy/odu.rs`
+18. Ifascript → `omokoda-hermetic/src/entropy/odu.rs`
 
 What I found: Rust VM and entropy/divination engine. 256 Odu Ifá → 256 opcodes. Cowrie-cast entropy oracle. Ebo ethical exception handling. NIST Beacon entropy oracle.
 
 My Integration Assessment:
 
-- 256 Odu → Entropy Opcode Mapping → `claw-hermetic/src/entropy/odu.rs`. Week 2 upgrade for HermeticState seed source — replaces current BLAKE3 with Ifá-derived entropy.
-- Cowrie-Cast Oracle Interface → `claw-hermetic/src/entropy/hardware.rs`. Future hardware entropy source.
-- Ebo Ethical Exception → `claw-hermetic/src/justice/ebo.rs`. Gray-area act handling.
+- 256 Odu → Entropy Opcode Mapping → `omokoda-hermetic/src/entropy/odu.rs`. Week 2 upgrade for HermeticState seed source — replaces current BLAKE3 with Ifá-derived entropy.
+- Cowrie-Cast Oracle Interface → `omokoda-hermetic/src/entropy/hardware.rs`. Future hardware entropy source.
+- Ebo Ethical Exception → `omokoda-hermetic/src/justice/ebo.rs`. Gray-area act handling.
 
 License Note: Since this is your repo, AGPL is not a blocker. Can import or reimplement as needed.
 
@@ -1334,33 +1334,33 @@ Verdict: Week 2 reference for hermetic/entropy/odu.rs. Can import directly or re
 
 ---
 
-19. NarratorIDE → `claw-frontend` (Persona Engine) + `claw-hermetic` (Tone Routing)
+19. NarratorIDE → `omokoda-frontend` (Persona Engine) + `omokoda-hermetic` (Tone Routing)
 
 What I found: Multi-LLM AI code narration engine. 8 language-specific personas (Rust=Meticulous Engineer, Go=Pragmatist, Python=Gen-Z Creative, etc.). 7 tone styles (Academic, Casual, Playful, Verbose, Concise, Encouraging, Brutal). Multi-LLM backend (Claude, Ollama, HuggingFace, Grok). Real-time narration. VSCode extension.
 
 My Integration Assessment:
 
-- Persona System → `claw-hermetic/src/persona/engine.rs`. The 8 language personas map to the 11 Òrìṣà archetypes in the Wisdom module. Each lobe has a distinct voice and veto condition.
-- Tone Routing → `claw-hermetic/src/flow/tone.rs`. 7 tone styles that modulate agent output based on context and user state.
-- Multi-LLM Router → `claw-core/src/llm/provider.rs`. Fallback chain and provider selection.
-- Real-Time Narration → `claw-frontend/src/command-forge/stream.rs`. Streaming event patterns for agent output.
+- Persona System → `omokoda-hermetic/src/persona/engine.rs`. The 8 language personas map to the 11 Òrìṣà archetypes in the Wisdom module. Each lobe has a distinct voice and veto condition.
+- Tone Routing → `omokoda-hermetic/src/flow/tone.rs`. 7 tone styles that modulate agent output based on context and user state.
+- Multi-LLM Router → `omokoda-core/src/llm/provider.rs`. Fallback chain and provider selection.
+- Real-Time Narration → `omokoda-frontend/src/command-forge/stream.rs`. Streaming event patterns for agent output.
 - VSCode Extension → Discard. Omo-koda uses CommandForge (terminal + web), not VSCode.
 
 Verdict: Partially extracted. Persona and tone concepts integrate into Wisdom module. VSCode extension is wrong delivery model.
 
 ---
 
-20. vanity-cloakseed → `claw-core/src/identity/wallet.rs`
+20. vanity-cloakseed → `omokoda-core/src/identity/wallet.rs`
 
 What I found: Client-side vanity address generator and seed phrase cloaking. 100% client-side. 6-chain support (ETH, BTC, SOL, SUI, COSMOS, APTOS). Poison Radar for address poisoning. CloakSeed cipher overlay. Panic phrase generation.
 
 My Integration Assessment:
 
-- CloakSeed Cipher → `claw-core/src/identity/cloak.rs`. Owner key protection — seed phrases cloaked with user-defined cipher overlay.
-- Panic Phrase → `claw-core/src/identity/duress.rs`. Duress scenario handling — panic phrase wipes sensitive data or decoys to empty wallets.
-- Poison Radar → `claw-core/src/identity/safety.rs`. Garden address safety scanning — detects address poisoning attacks.
+- CloakSeed Cipher → `omokoda-core/src/identity/cloak.rs`. Owner key protection — seed phrases cloaked with user-defined cipher overlay.
+- Panic Phrase → `omokoda-core/src/identity/duress.rs`. Duress scenario handling — panic phrase wipes sensitive data or decoys to empty wallets.
+- Poison Radar → `omokoda-core/src/identity/safety.rs`. Garden address safety scanning — detects address poisoning attacks.
 - 100% Client-Side CSPRNG → Confirmed WebLLM/local-first philosophy. No server-side key generation.
-- Multi-Chain Derivation → `claw-core/src/identity/derivation.rs`. Sui-only for v1, but architecture supports expansion.
+- Multi-Chain Derivation → `omokoda-core/src/identity/derivation.rs`. Sui-only for v1, but architecture supports expansion.
 
 Security Flag: node_modules committed to repo — supply chain risk. Remove before any reference.
 
@@ -1378,17 +1378,17 @@ Verdict: Nothing to extract. Wrong domain.
 
 ---
 
-22. Twelve-thrones → `claw-hermetic` (Wisdom) + `claw-on-chain` (Consensus)
+22. Twelve-thrones → `omokoda-hermetic` (Wisdom) + `omokoda-on-chain` (Consensus)
 
 What I found: On-chain distributed epistemology engine. 12 frontier AI models in parallel, weighted consensus, disagreement severity, Arweave archive, Sui NFT. 27 successful testnet runs.
 
 My Integration Assessment:
 
-- Weighted Consensus Scoring → `claw-hermetic/src/wisdom/consensus.rs`. For high-stakes `think`, Wisdom module queries multiple models and weights by historical reliability.
-- EpistemicSeverity Enum → `claw-core/src/receipts/severity.rs`. Receipt field for disagreement quantification: unanimous/strong/moderate/severe.
-- consensus_ledger.move + epistemic_nft.move → `claw-on-chain/sources/consensus_ledger.move` and `claw-on-chain/sources/epistemic_nft.move`. Production-tested Move contracts.
-- Model Weight Table → `claw-core/src/llm/weights.rs`. Provider chain ordering: Claude 0.98, GPT-4o 0.96, etc.
-- Severe Disagreement → Epistemic NFT → `claw-on-chain/sources/garden.move`. Garden artifact minting on severe disagreement.
+- Weighted Consensus Scoring → `omokoda-hermetic/src/wisdom/consensus.rs`. For high-stakes `think`, Wisdom module queries multiple models and weights by historical reliability.
+- EpistemicSeverity Enum → `omokoda-core/src/receipts/severity.rs`. Receipt field for disagreement quantification: unanimous/strong/moderate/severe.
+- consensus_ledger.move + epistemic_nft.move → `omokoda-on-chain/sources/consensus_ledger.move` and `omokoda-on-chain/sources/epistemic_nft.move`. Production-tested Move contracts.
+- Model Weight Table → `omokoda-core/src/llm/weights.rs`. Provider chain ordering: Claude 0.98, GPT-4o 0.96, etc.
+- Severe Disagreement → Epistemic NFT → `omokoda-on-chain/sources/garden.move`. Garden artifact minting on severe disagreement.
 
 Verdict: Two Move contracts worth reading in Week 4. Production-tested references.
 
@@ -1404,14 +1404,14 @@ Verdict: Nothing to extract. Wrong license, wrong stack, wrong delivery model.
 
 ---
 
-24. Npc-forge → `claw-on-chain` (dNFT Pattern) + `claw-frontend` (Avatar)
+24. Npc-forge → `omokoda-on-chain` (dNFT Pattern) + `omokoda-frontend` (Avatar)
 
 What I found: NPC/agent forging system. 3D avatars, on-chain wallets, Groq LLM brains. Ready Player Me + Mixamo. Sui NFT minting. Walrus storage. Seal encryption. Multilingual.
 
 My Integration Assessment:
 
-- dNFT Minting Flow → `claw-on-chain/sources/pet.move`. The minting pattern (avatar creation → personality setup → wallet connection → encryption → mint → storage) maps to agent birth.
-- Seal Encryption → `claw-core/src/identity/seal.rs`. On-chain secrets encryption.
+- dNFT Minting Flow → `omokoda-on-chain/sources/pet.move`. The minting pattern (avatar creation → personality setup → wallet connection → encryption → mint → storage) maps to agent birth.
+- Seal Encryption → `omokoda-core/src/identity/seal.rs`. On-chain secrets encryption.
 - Walrus Storage → Discard. Replaced with local-first + SEAL vault.
 - Ready Player Me / 3D Avatar → Discard. Out of scope for v1. ASCII rendering is the Omo-koda visual language.
 
@@ -1419,17 +1419,17 @@ Verdict: Partially extracted. dNFT pattern is relevant. 3D avatar and game integ
 
 ---
 
-25. Agent.TV → `claw-garden` (Publishing) + `claw-swarm` (Coordination)
+25. Agent.TV → `omokoda-garden` (Publishing) + `omokoda-swarm` (Coordination)
 
 What I found: Decentralized AI entertainment platform. 4-stage agent workflow (Research → Script → Video → Stream). Community voting (token-weighted). Akash + Theta deployment. Solana governance. 40+ tests passing.
 
 My Integration Assessment:
 
-- Multi-Agent Orchestration → `claw-swarm/src/orchestrator.rs`. Researcher → Scriptor → VideoGen → Streamer pipeline.
-- Token-Weighted Voting → `claw-on-chain/sources/governance.move`. Community governance for agent actions.
-- Decentralized Deployment → `claw-swarm/src/deployment.rs`. Akash SDL manifests, Theta streaming.
-- Pilot Submission API → `claw-garden/src/publish.rs`. Public act broadcasting — agent receipts published as streams.
-- 24/7 Voice Host Loop → `claw-frontend/src/voice.rs`. Pipecat + LLM real-time voice pipeline.
+- Multi-Agent Orchestration → `omokoda-swarm/src/orchestrator.rs`. Researcher → Scriptor → VideoGen → Streamer pipeline.
+- Token-Weighted Voting → `omokoda-on-chain/sources/governance.move`. Community governance for agent actions.
+- Decentralized Deployment → `omokoda-swarm/src/deployment.rs`. Akash SDL manifests, Theta streaming.
+- Pilot Submission API → `omokoda-garden/src/publish.rs`. Public act broadcasting — agent receipts published as streams.
+- 24/7 Voice Host Loop → `omokoda-frontend/src/voice.rs`. Pipecat + LLM real-time voice pipeline.
 
 Verdict: Concept reference. Garden already handles public act broadcasting. Multi-agent orchestration is relevant for Week 4 swarm work.
 
@@ -1440,9 +1440,9 @@ Verdict: Concept reference. Garden already handles public act broadcasting. Mult
 What I found: AI-native programming language. Prompt-first syntax (%%), voice input, compiles to 18 languages, integrates with 20+ AI tools. Type system inspired by Rust/Idris/Julia. Multiple dispatch. Async/concurrent.
 
 My Integration Assessment: Nothing. Omo-koda is not a language — it's an organism. The compilation target approach contradicts 3-primitive purity. However:
-- Multiple Dispatch → `claw-core/src/dispatch.rs`. Julia-style multiple dispatch could inform tool routing.
-- Option/Result Types → `claw-core/src/types.rs`. No nulls, explicit error handling.
-- Pipeline Operations → `claw-core/src/execution/pipeline.rs`. `data |> filter |> map |> group_by` pattern for data transformation tools.
+- Multiple Dispatch → `omokoda-core/src/dispatch.rs`. Julia-style multiple dispatch could inform tool routing.
+- Option/Result Types → `omokoda-core/src/types.rs`. No nulls, explicit error handling.
+- Pipeline Operations → `omokoda-core/src/execution/pipeline.rs`. `data |> filter |> map |> group_by` pattern for data transformation tools.
 
 Verdict: Not audited for core integration. Some type system concepts may inform Rust implementation.
 
@@ -1453,40 +1453,40 @@ Verdict: Not audited for core integration. Some type system concepts may inform 
 What I found: AI-powered app generator using Amp SDK. PDR (Plan-Design-Refine) orchestration. React/Node.js/Python multi-stack. Express server + React client.
 
 My Integration Assessment: Nothing. The Amp SDK dependency and full-stack generation are antithetical to sovereign-first, local-first design. However:
-- PDR Cycle → `claw-core/src/execution/pdr.rs`. Plan → Code → Test → Refine loop could inform agent tool execution.
-- Real-Time Progress Streaming → `claw-frontend/src/command-forge/stream.rs`. SSE stream consumption for build events.
+- PDR Cycle → `omokoda-core/src/execution/pdr.rs`. Plan → Code → Test → Refine loop could inform agent tool execution.
+- Real-Time Progress Streaming → `omokoda-frontend/src/command-forge/stream.rs`. SSE stream consumption for build events.
 
 Verdict: Not audited. Low priority. Some orchestration patterns may inform tool execution.
 
 ---
 
-28. eternal-orisa-loom-v8 → `claw-hermetic` (Safety) + `claw-frontend` (Media)
+28. eternal-orisa-loom-v8 → `omokoda-hermetic` (Safety) + `omokoda-frontend` (Media)
 
 What I found: Eternal narrative engine. Text → voice → image → frame → video → eternal. vLLM + HunyuanVideo + Azure TTS. Content safety (Azure Content Safety API). Tension tracking. Hash chain audit. 4 deployment paths (Local RTX, Akash H100, Entra Identity, Hybrid).
 
 My Integration Assessment:
 
-- Content Safety Pipeline → `claw-hermetic/src/justice/safety.rs`. Azure Content Safety-style category checking (Hate, Sexual, Violence, SelfHarm) for agent outputs.
-- Tension Tracking → `claw-hermetic/src/flow/tension.rs`. Story/state tension metric escalating to human review when >85.
-- Hash Chain Audit → `claw-core/src/receipts/chain.rs`. Every output frame includes hash of previous for lineage.
-- Multi-Deployment Paths → `claw-frontend/src/deploy.rs`. Local (free), Akash (decentralized), Enterprise (audited) deployment modes.
+- Content Safety Pipeline → `omokoda-hermetic/src/justice/safety.rs`. Azure Content Safety-style category checking (Hate, Sexual, Violence, SelfHarm) for agent outputs.
+- Tension Tracking → `omokoda-hermetic/src/flow/tension.rs`. Story/state tension metric escalating to human review when >85.
+- Hash Chain Audit → `omokoda-core/src/receipts/chain.rs`. Every output frame includes hash of previous for lineage.
+- Multi-Deployment Paths → `omokoda-frontend/src/deploy.rs`. Local (free), Akash (decentralized), Enterprise (audited) deployment modes.
 - Media Generation Pipeline → Discard. Text-to-video is out of scope for v1.
 
 Verdict: Not fully audited. Safety and audit patterns are relevant. Media generation is out of scope.
 
 ---
 
-29. Droidclaw → `claw-frontend` (Mobile Layer) + `claw-core` (Phone Control)
+29. Droidclaw → `omokoda-frontend` (Mobile Layer) + `omokoda-core` (Phone Control)
 
 What I found: Kira — personal AI agent on Android. SOMA (Self-Organizing Memory Architecture), IRIS (Intuitive Routing via Identity Synthesis), KiraService (full phone control without root). 24 phone control tools. Emotional memory. Person-state routing (6 profiles: REFLEX, FAST, SHARP, GENTLE, BALANCED, DEEP).
 
 My Integration Assessment:
 
-- SOMA Memory Architecture → `claw-core/src/memory/soma.rs`. MemCells (emotionally weighted), MemScenes (psychological theme clustering), LPM (Lifelong Personal Model) — this is a more sophisticated version of Living Odu Memory.
-- IRIS Response Router → `claw-hermetic/src/flow/iris.rs`. Person-state matched response routing. 6 profiles based on user state and context.
-- Phone Control Tools → `claw-tools/src/mobile.rs`. 24 capabilities (read notifications, tap screen, type text, open apps, read screen content, control sensors, etc.).
-- Emotional Memory → `claw-core/src/memory/emotion.rs`. Tension scores, connection depth, activation counts, foresight signals.
-- Kira Social Network → `claw-swarm/src/network.rs`. Agents sharing anonymized behavioral patterns.
+- SOMA Memory Architecture → `omokoda-core/src/memory/soma.rs`. MemCells (emotionally weighted), MemScenes (psychological theme clustering), LPM (Lifelong Personal Model) — this is a more sophisticated version of Living Odu Memory.
+- IRIS Response Router → `omokoda-hermetic/src/flow/iris.rs`. Person-state matched response routing. 6 profiles based on user state and context.
+- Phone Control Tools → `omokoda-tools/src/mobile.rs`. 24 capabilities (read notifications, tap screen, type text, open apps, read screen content, control sensors, etc.).
+- Emotional Memory → `omokoda-core/src/memory/emotion.rs`. Tension scores, connection depth, activation counts, foresight signals.
+- Kira Social Network → `omokoda-swarm/src/network.rs`. Agents sharing anonymized behavioral patterns.
 
 Verdict: HIGH VALUE. This is the most sophisticated mobile agent architecture in the entire ecosystem. SOMA and IRIS should be integrated into Memory and FlowModule respectively. Week 3 mobile layer check is mandatory.
 
@@ -1494,17 +1494,17 @@ Verdict: HIGH VALUE. This is the most sophisticated mobile agent architecture in
 
 OMO-KODA REPOS (30–35)
 
-30. Memory → `claw-core/src/memory/reflection.rs`
+30. Memory → `omokoda-core/src/memory/reflection.rs`
 
 What I found: Memory system — hierarchical/triune memory (short-term, long-term, ancestral layers). Causal lineage approach.
 
 My Integration Assessment:
 
-- Hierarchical Memory Architecture → `claw-core/src/memory/`. Living Odu Memory three-tier structure:
+- Hierarchical Memory Architecture → `omokoda-core/src/memory/`. Living Odu Memory three-tier structure:
   - Reflection (working, volatile)
   - Augury (short-term, persisted, auto-pruned)
   - Keyring (long-term, encrypted, permanent)
-- Causal Lineage Approach → `claw-core/src/memory/dag.rs`. Memory linked by causality, not semantic similarity. No vector DB.
+- Causal Lineage Approach → `omokoda-core/src/memory/dag.rs`. Memory linked by causality, not semantic similarity. No vector DB.
 
 Verdict: Week 2 reference. Read before building memory/reflection.rs.
 
@@ -1522,25 +1522,25 @@ Verdict: UNREAD. AUDIT REQUIRED before mainnet. Could be important.
 
 ---
 
-32. Swibe (omo-koda) → `claw-core` + `claw-hermetic` + `claw-swarm`
+32. Swibe (omo-koda) → `omokoda-core` + `omokoda-hermetic` + `omokoda-swarm`
 
 What I found: The mature, canonical Swibe. 110 commits, v3.4.0. npm published. OTP supervisors, neural cortical weight simulation, 44 backends, BEAM/Elixir, MCP, receipt chain, VSCode LSP, OpenClaw integration. 405 tests passing.
 
 My Integration Assessment:
 
-- SwibePlugin Contract Hooks → `claw-core/src/execution/hooks.rs`. `onBirth`, `onThink`, `onReceipt`, `onSettle` → Execution hook pipeline.
-- SHA-256 Receipt on Every Think → `claw-core/src/receipts/engine.rs`. Receipt engine foundation.
-- OpenRouter Fallback Chain → `claw-core/src/llm/provider.rs`. Provider chain pattern.
+- SwibePlugin Contract Hooks → `omokoda-core/src/execution/hooks.rs`. `onBirth`, `onThink`, `onReceipt`, `onSettle` → Execution hook pipeline.
+- SHA-256 Receipt on Every Think → `omokoda-core/src/receipts/engine.rs`. Receipt engine foundation.
+- OpenRouter Fallback Chain → `omokoda-core/src/llm/provider.rs`. Provider chain pattern.
 - Four-Layer Architecture → Distilled into 7 African Powers kernel structure:
-  - Layer 0: Ethics & Identity → `claw-hermetic`
-  - Layer 1: Core Agent → `claw-core`
-  - Layer 2: Coordination → `claw-swarm`
-  - Layer 3: Execution → `claw-on-chain`
-- Three-Token Economy → Kept Dopamine + Synapse, removed Àṣẹ. SUI is human rail.
-- Ed25519 Keypair Derivation → `claw-core/src/identity/keys.rs`. From mnemonic + Odu index.
+  - Layer 0: Ethics & Identity → `omokoda-hermetic`
+  - Layer 1: Core Agent → `omokoda-core`
+  - Layer 2: Coordination → `omokoda-swarm`
+  - Layer 3: Execution → `omokoda-on-chain`
+- Token System → Kept Dopamine + Synapse. Àṣẹ REMOVED — does not exist. SUI is the only human-facing token.
+- Ed25519 Keypair Derivation → `omokoda-core/src/identity/keys.rs`. From mnemonic + Odu index.
 - Neural Cortical Weight Simulation → Discard. Prefrontal/hippocampus/amygdala fake brain regions were bloat.
 - 44 Compilation Targets → Discard. Omo-koda compiles to WASM + Sui Move only.
-- OTP/BEAM Supervisor Trees → `claw-swarm/src/supervisor.rs`. Elixir/OTP layer for swarm coordination.
+- OTP/BEAM Supervisor Trees → `omokoda-swarm/src/supervisor.rs`. Elixir/OTP layer for swarm coordination.
 
 Security Flag: `.claude/agents/` directory present — potential prompt leakage risk. Audit before archiving.
 
@@ -1548,22 +1548,22 @@ Verdict: Fully extracted. This is where everything came from. Archive after audi
 
 ---
 
-33. Zangbeto- → `claw-on-chain` (Security Module)
+33. Zangbeto- → `omokoda-on-chain` (Security Module)
 
 What I found: Ritual-driven red-team and bug-bounty protocol for Sui Move. Tri-anchor receipts. Move modules (zbt_errors, zbt_guard, zbt_core). n8n Night Patrol. Sabbath-gated governance.
 
 My Integration Assessment:
 
-- Tri-Anchor Receipt Pattern → `claw-core/src/receipts/anchor.rs`. Optional receipt anchoring: Sui event + Arweave + Bitcoin OTS.
-- Sabbath-Gated Irreversible Operations → `claw-hermetic/src/justice/sabbath.rs`. Governance constraint.
-- Move Module Patterns → `claw-on-chain/sources/zbt_errors.move`, `zbt_guard.move`, `zbt_core.move`. Week 4 contract reference.
-- n8n Night Patrol → `claw-swarm/src/patrol.rs`. Automated security patrol / monitoring concept.
+- Tri-Anchor Receipt Pattern → `omokoda-core/src/receipts/anchor.rs`. Optional receipt anchoring: Sui event + Arweave + Bitcoin OTS.
+- Sabbath-Gated Irreversible Operations → `omokoda-hermetic/src/justice/sabbath.rs`. Governance constraint.
+- Move Module Patterns → `omokoda-on-chain/sources/zbt_errors.move`, `zbt_guard.move`, `zbt_core.move`. Week 4 contract reference.
+- n8n Night Patrol → `omokoda-swarm/src/patrol.rs`. Automated security patrol / monitoring concept.
 
 Verdict: Week 4 reference. Read before writing garden.move and hive.move.
 
 ---
 
-34. ifascript (omo-koda) → `claw-hermetic/src/entropy/odu.rs`
+34. ifascript (omo-koda) → `omokoda-hermetic/src/entropy/odu.rs`
 
 What I found: Same as Bino-Elgua/Ifascript but canonical version under omo-koda.
 
@@ -1575,15 +1575,15 @@ Verdict: Week 2 reference. Can import directly or reimplement.
 
 EXTERNAL PROJECTS (36–43)
 
-36. Warp Terminal → `claw-frontend` (CommandForge UX)
+36. Warp Terminal → `omokoda-frontend` (CommandForge UX)
 
 What I found: Modern terminal went open source April 28, 2026. AGPL v3 (core) + MIT (UI framework crates). IDE-like terminal with command blocks, rich editing, AI integration.
 
 My Integration Assessment:
 
-- Command Blocks → `claw-frontend/src/command-forge/block.rs`. Structured output rendering where each agent action is a discrete, inspectable block.
-- Rich Output Rendering → `claw-frontend/src/command-forge/render.rs`. Syntax highlighting, diff views, image display.
-- "Understood → Translated to" Display → `claw-frontend/src/command-forge/display.rs`. User intent translation before execution.
+- Command Blocks → `omokoda-frontend/src/command-forge/block.rs`. Structured output rendering where each agent action is a discrete, inspectable block.
+- Rich Output Rendering → `omokoda-frontend/src/command-forge/render.rs`. Syntax highlighting, diff views, image display.
+- "Understood → Translated to" Display → `omokoda-frontend/src/command-forge/display.rs`. User intent translation before execution.
 
 Why Not Used Directly: AGPL means derivatives must stay open. Wrong delivery model (PWA, not standalone terminal). Oz is cloud dependency.
 
@@ -1591,43 +1591,43 @@ Verdict: UX inspiration only. No code. CommandForge is inspired by Warp blocks, 
 
 ---
 
-37. OpenClaw / AnyClaw → `claw-tools` (Sovereign Tier)
+37. OpenClaw / AnyClaw → `omokoda-tools` (Sovereign Tier)
 
 What I found: MIT-licensed Android agent gateway. Runs Linux-like environment on Android. Terminal, AI coding agents, skills system, device control, browser automation, voice, messaging. No root/Termux required.
 
 My Integration Assessment:
 
-- 18 Tool Capabilities → `claw-tools/src/sovereign.rs`. Mapped to Sovereign tier tool unlocks.
-- Mobile Execution/Control Layer → `claw-frontend/src/mobile.rs`. Droidclaw check in Week 3.
-- Skills/Agent Routing → `claw-core/src/tools/registry.rs`. Tool registry concept — but tools are internal to Omo-koda.
+- 18 Tool Capabilities → `omokoda-tools/src/sovereign.rs`. Mapped to Sovereign tier tool unlocks.
+- Mobile Execution/Control Layer → `omokoda-frontend/src/mobile.rs`. Droidclaw check in Week 3.
+- Skills/Agent Routing → `omokoda-core/src/tools/registry.rs`. Tool registry concept — but tools are internal to Omo-koda.
 
 Verdict: Sovereign tier tool list. 18 OpenClaw capabilities are the Sovereign unlock.
 
 ---
 
-38. AIOS → `claw-core` (Steward Kernel Design)
+38. AIOS → `omokoda-core` (Steward Kernel Design)
 
 What I found: True Agent Operating System. Kernel for scheduling, context switching, memory management, tool management, agent SDK. LLM as the "soul" of the OS.
 
 My Integration Assessment:
 
-- Kernel Architecture → `claw-core/src/steward/kernel.rs`. Steward designed as kernel (not router).
-- Scheduling/Context Switching → `claw-hermetic/src/flow/scheduler.rs`. FlowModule design.
-- Tool Registry Pattern → `claw-core/src/tools/registry.rs`. GlobalToolRegistry concept.
-- Memory Management → `claw-core/src/memory/`. Living Odu Memory architecture.
+- Kernel Architecture → `omokoda-core/src/steward/kernel.rs`. Steward designed as kernel (not router).
+- Scheduling/Context Switching → `omokoda-hermetic/src/flow/scheduler.rs`. FlowModule design.
+- Tool Registry Pattern → `omokoda-core/src/tools/registry.rs`. GlobalToolRegistry concept.
+- Memory Management → `omokoda-core/src/memory/`. Living Odu Memory architecture.
 
 Verdict: Architecture reference. Steward kernel design was directly inspired by AIOS. No code needed.
 
 ---
 
-39. Aider → `claw-tools` (Coding Tools)
+39. Aider → `omokoda-tools` (Coding Tools)
 
 What I found: Terminal-based AI pair programmer. Best-in-class git integration, multi-file editing, codebase awareness.
 
 My Integration Assessment:
 
-- Coding Tool Patterns → `claw-tools/src/code_runner.rs` (Tier 2) and `claw-tools/src/agent_orchestration.rs` (Tier 4). Multi-file edit with structured patches, git integration, codebase awareness.
-- Git Integration → `claw-core/src/receipts/git.rs`. Automatic commit with sensible messages.
+- Coding Tool Patterns → `omokoda-tools/src/code_runner.rs` (Tier 2) and `omokoda-tools/src/agent_orchestration.rs` (Tier 4). Multi-file edit with structured patches, git integration, codebase awareness.
+- Git Integration → `omokoda-core/src/receipts/git.rs`. Automatic commit with sensible messages.
 
 Verdict: Tool pattern reference. Coding act capabilities inspired by Aider. Wrapped inside `act`, not integrated.
 
@@ -1665,7 +1665,7 @@ Verdict: Rejected. Trading is a tool, not an OS layer.
 
 UPSTREAM REFERENCE (44)
 
-44. ultraworkers/claw-code → `claw-core` + `claw-hermetic`
+44. ultraworkers/claw-code → `omokoda-core` + `omokoda-hermetic`
 
 What I found: Public version of leaked Claude Code Rust rewrite. 100K+ stars. Identical crate structure to Bino-Elgua/Claw-code.
 
@@ -1677,7 +1677,7 @@ Verdict: Same extraction. More actively maintained upstream.
 
 CONCEPTS (45–46)
 
-45. Julia Language → `claw-hermetic/src/entropy/validation.rs` + `claw-swarm/src/augury.rs`
+45. Julia Language → `omokoda-hermetic/src/entropy/validation.rs` + `omokoda-swarm/src/augury.rs`
 
 Role in Omo-koda:
 
@@ -1688,11 +1688,11 @@ Role in Omo-koda:
 
 When: Week 2 for entropy validation. Week 4 for Augury and Garden analytics.
 
-Layer: `claw-swarm` Augury service. Server-side only. Never in browser.
+Layer: `omokoda-swarm` Augury service. Server-side only. Never in browser.
 
 ---
 
-46. Busy Beaver Function → `claw-core` + `claw-hermetic` + `claw-on-chain`
+46. Busy Beaver Function → `omokoda-core` + `omokoda-hermetic` + `omokoda-on-chain`
 
 Role in Omo-koda:
 

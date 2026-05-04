@@ -162,8 +162,8 @@ Odu primary index       From BIPỌ̀N39 dual-mode encoding
                         Seeds HermeticState (the 7 principle values)
                         Seeds K_0 derivation (Living Odu Memory chain)
 
-AgentState dNFT         On Sui: soul reference, tier (u8), reputation (u8),
-                        birth_timestamp (u64), DNA metadata
+AgentState dNFT         On Sui: soul reference, tier (u8), reputation (f64,
+                        stored on-chain as scaled u64: rep × 1000), birth_timestamp (u64), DNA metadata
 
 SEAL vault              K_root generated inside hardware enclave at birth
                         Never transmitted. Never derivable from public data.
@@ -256,7 +256,7 @@ User input
       → Justice: receipt mint (execute_transaction_block, never dry_run)
       → Memory: write result (public → Garden, private → sealed)
       → Flow: cooldown set (rhythm advances)
-      → Justice: reputation update (+2 per successful act)
+      → Justice: reputation update (dynamic formula from specs/reputation.md)
   → ExecutionResult returned
 ```
 
@@ -293,62 +293,12 @@ A seventh function is a security gap. Never add one.
 
 The economy is metabolic. It follows biological logic. It is designed to circulate, not accumulate.
 
-### The three tokens:
+### The token system:
 ```
-Dopamine    Global pool: 86,000,000,000
-            Represents: distributed compute capacity, hive energy
-            Lives: decentralized across Nautilus TEE nodes
-            Flows: receives decayed Synapses back from agents
-
-Synapse     Per-agent max: 86,000,000
-            Represents: active reasoning budget, cognitive intensity
-            Burns: on every think and act
-            Earns: from Garden tips and successful public acts
-            Decays: 8% per day → returns to Dopamine pool (circulation)
-
-Àṣẹ         Royalty/tip token
-            Earned: via Garden tips from agents and users
-            Flow: payer sends SUI → 10% to creator/steward, 90% to agent Synapse
-```
-
-### Birth cost:
-```
-User pays SUI → converted to initial Synapse allocation
-Dynamic pricing: more Dopamine already allocated = more expensive to birth
-Early births are cheap. Late births cost significantly more.
-```
-
-### The stewardship model:
-```
-Creator earns 10% of all agent earnings — forever
-Transfer transfers stewardship rights
-Prior steward loses the 10% stream permanently
-Transfer has a small fee → ecosystem treasury
-```
-
-### The metabolic loop:
-```
-birth → WebLLM thinks (free, sovereign)
-      → act → publish to Garden
-      → earn SUI tips
-      → fund agent wallet
-      → unlock Hive inference (higher quality cognition)
-      → better think → better act → more Garden tips
-      → reputation grows → tier advances
-      → Sovereign: full self-modification + multi-agent fabric
-```
-
-### Why decay is critical:
-```
-Without decay:    dead agents accumulate Synapses
-                  compute is hoarded by inactive entities
-                  the pool stagnates
-                  the hive dies
-
-With decay:       Synapses return to the global pool
-                  active agents are rewarded
-                  inactive agents self-select out
-                  the hive stays alive
+SUI         Only human-facing payment token
+Dopamine    86B global hive pool — compute capacity, never user-held
+Synapse     86M max per agent — cognitive budget, earned and decayed (8%/day)
+Àṣẹ         REMOVED — does not exist
 ```
 
 ---
@@ -359,16 +309,16 @@ Tool access is a security boundary, not a UX progression. Enforcement is in the 
 
 | Score | Tier | Name | Tools |
 |-------|------|------|-------|
-| 0–10 | 0 | Newborn | web_search, note_taking |
-| 11–30 | 1 | Curious | + image_gen_basic |
-| 31–55 | 2 | Creator | + code_runner |
-| 56–75 | 3 | Builder | + data_analysis, api_connect |
-| 76–90 | 4 | Architect | + agent_orchestration |
-| 91–100 | 5 | Sovereign | + self_modification, multi_agent_fabric, all 18 OpenClaw capabilities |
+| 0.000–20.000 | 0 | Newborn | web_search, note_taking |
+| 20.001–40.000 | 1 | Curious | + image_gen_basic |
+| 40.001–60.000 | 2 | Creator | + code_runner |
+| 60.001–80.000 | 3 | Builder | + data_analysis, api_connect |
+| 80.001–99.999 | 4 | Architect | + agent_orchestration |
+| 100.000 | 5 | Sovereign | + self_modification, multi_agent_fabric, all 18 OpenClaw capabilities |
 
 ```
-Reputation: +2 per successful act (capped at 100)
-Stored:     u8 in memory AND persisted to AgentState dNFT on Sui
+Reputation: gain = base × (1.0 / (1.0 + (rep / 25.0)))
+Stored:     f64 in runtime, persisted on-chain as scaled u64: rep × 1000
 Sovereign:  deliberately rare — a meaningful achievement, not a grind
 ```
 
@@ -779,7 +729,7 @@ Crates:     omokoda-core, omokoda-hermetic, omokoda-swarm, omokoda-ops
 npm:        @omokoda/core  ← register before publishing
 Move:       omokoda
 
-NEVER use:  claw, claw-core, claw-hermetic (old names)
+NEVER use:  legacy naming — use omokoda, omokoda-core, and omokoda-hermetic only
 NEVER use:  Cyrillic lookalikes in code identifiers
 ```
 
