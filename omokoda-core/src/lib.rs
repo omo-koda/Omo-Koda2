@@ -1,3 +1,4 @@
+pub mod identity;
 pub mod parser;
 pub mod interpreter;
 pub mod receipt;
