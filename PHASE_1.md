@@ -1,5 +1,5 @@
 # Phase 1: Rust Core (✅ done)
-## Directory: claw-core/
+## Directory: omokoda-core/
 ✅ Cargo.toml with serde/chrono/sha2/rand/wasm-bindgen  
 ✅ src/lib.rs with:
 - Agent struct (7 Hermetic principles, memory, reputation)

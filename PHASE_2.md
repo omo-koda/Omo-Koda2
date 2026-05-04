@@ -1,5 +1,5 @@
 # Phase 2: Hermetic Principle Engine (✅ done)
-## Directory: claw-hermetic/
+## Directory: omokoda-hermetic/
 - Cargo.toml – includes `serde` and `chrono`
 - src/lib.rs – implements:
   - `risk_score(prompt: &str) -> f32` (Mentalism, Correspondence)

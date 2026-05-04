@@ -1,4 +1,5 @@
 pub mod parser;
+pub mod receipt;
 
 use chrono::{DateTime, Utc};
 use rand::Rng;
@@ -21,7 +22,7 @@ pub struct Agent {
     pub think_count: u32,
     pub act_count: u32,
     pub gender_balance: f32,
-    pub reputation: u32,
+    pub reputation: f64,
     pub tier: u8,
     pub memory_key: Vec<u8>,
     pub odu_state: OduState,
@@ -102,7 +103,7 @@ pub struct AgentRuntime {
 impl Agent {
     pub fn hidden_state_summary(&self) -> String {
         format!(
-            "agent={} tier={} rep={} think={} act={} sandbox={}",
+            "agent={} tier={} rep={:.3} think={} act={} sandbox={}",
             self.name, self.tier, self.reputation, self.think_count, self.act_count, self.sandbox_mode
         )
     }
@@ -127,7 +128,7 @@ impl Agent {
             think_count: 0,
             act_count: 0,
             gender_balance: 0.5,
-            reputation: 0,
+            reputation: 0.0,
             tier: 0,
             memory_key: vec![],
             odu_state: OduState { index: 0, seed: vec![] },
@@ -182,21 +183,26 @@ impl AgentRuntime {
             summary,
         };
         self.agent.receipt_chain.push(receipt.clone());
-        self.agent.reputation = (self.agent.reputation + 1).min(100);
+        self.agent.reputation = (self.agent.reputation + reputation_gain(0.040, self.agent.reputation)).min(100.0);
         self.agent.tier = tier_for(self.agent.reputation);
         self.agent.unlocked_tools = tools_for_tier(self.agent.tier);
         receipt
     }
 }
 
-pub fn tier_for(reputation: u32) -> u8 {
-    match reputation {
-        0..=10 => 0,
-        11..=30 => 1,
-        31..=55 => 2,
-        56..=75 => 3,
-        76..=90 => 4,
-        _ => 5,
+pub fn tier_for(reputation: f64) -> u8 {
+    if reputation >= 100.0 {
+        5
+    } else if reputation > 80.0 {
+        4
+    } else if reputation > 60.0 {
+        3
+    } else if reputation > 40.0 {
+        2
+    } else if reputation > 20.0 {
+        1
+    } else {
+        0
     }
 }
 
@@ -253,4 +259,9 @@ pub fn dispatch(runtime: &mut Option<AgentRuntime>, primitive: Primitive) -> Str
 fn hex_hash(input: &str) -> String {
     let digest = Sha256::digest(input.as_bytes());
     digest.iter().take(8).map(|b| format!("{:02x}", b)).collect()
+}
+
+fn reputation_gain(base: f64, reputation: f64) -> f64 {
+    let difficulty = 1.0 / (1.0 + (reputation / 25.0));
+    base * difficulty
 }
