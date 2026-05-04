@@ -1,4 +1,5 @@
 pub mod parser;
+pub mod interpreter;
 pub mod receipt;
 
 use chrono::{DateTime, Utc};
@@ -193,13 +194,13 @@ impl AgentRuntime {
 pub fn tier_for(reputation: f64) -> u8 {
     if reputation >= 100.0 {
         5
-    } else if reputation > 80.0 {
+    } else if reputation >= 80.0 {
         4
-    } else if reputation > 60.0 {
+    } else if reputation >= 60.0 {
         3
-    } else if reputation > 40.0 {
+    } else if reputation >= 40.0 {
         2
-    } else if reputation > 20.0 {
+    } else if reputation >= 20.0 {
         1
     } else {
         0

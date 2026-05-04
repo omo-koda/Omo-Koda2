@@ -1,12 +1,12 @@
 use std::collections::HashSet;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct MetadataPair {
     pub key: String,
     pub value: String,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Statement {
     Birth {
         name: String,
@@ -85,30 +85,31 @@ pub fn parse(input: &str) -> Result<Vec<Statement>, ParseError> {
         return Err(ParseError("raw key material not allowed in input".into()));
     }
 
+    let mut tokens = Tokenizer::new(input);
     let mut statements = Vec::new();
-    for line in input.lines() {
-        let line = line.trim();
-        if line.is_empty() {
-            continue;
+    while !tokens.is_eof() {
+        tokens.skip_whitespace();
+        if tokens.is_eof() {
+            break;
         }
-        statements.push(parse_statement(line)?);
+        statements.push(parse_statement(&mut tokens)?);
     }
 
     Ok(statements)
 }
 
-fn parse_statement(line: &str) -> Result<Statement, ParseError> {
-    if line.starts_with('/') {
-        return parse_slash_cmd(line);
+fn parse_statement(tokens: &mut Tokenizer) -> Result<Statement, ParseError> {
+    tokens.skip_whitespace();
+    if tokens.peek_char() == Some('/') {
+        return parse_slash_cmd(tokens);
     }
 
-    let mut tokens = Tokenizer::new(line);
     match tokens.next_word().as_deref() {
-        Some("birth") => parse_birth(&mut tokens),
-        Some("think") => parse_think(&mut tokens),
-        Some("act") => parse_act(&mut tokens),
+        Some("birth") => parse_birth(tokens),
+        Some("think") => parse_think(tokens),
+        Some("act") => parse_act(tokens),
         Some(_) => Ok(Statement::Think {
-            prompt: line.to_string(),
+            prompt: tokens.consume_rest_of_input_with_current_word(),
             private: false,
         }),
         None => Err(ParseError("empty statement".into())),
@@ -162,19 +163,19 @@ fn parse_act(tokens: &mut Tokenizer) -> Result<Statement, ParseError> {
     })
 }
 
-fn parse_slash_cmd(line: &str) -> Result<Statement, ParseError> {
-    let rest = &line[1..];
-    let mut parts = rest.splitn(2, ' ');
-    let command = parts.next().unwrap_or("").trim().to_string();
+fn parse_slash_cmd(tokens: &mut Tokenizer) -> Result<Statement, ParseError> {
+    tokens.pos += 1;
+    let command = tokens
+        .next_word()
+        .unwrap_or_default()
+        .trim()
+        .to_string();
 
     if !VALID_SLASH_COMMANDS.contains(&command.as_str()) {
         return Err(ParseError(format!("unknown slash command: /{command}")));
     }
 
-    let arg = parts
-        .next()
-        .map(|s| s.trim().to_string())
-        .filter(|s| !s.is_empty());
+    let arg = tokens.next_word().filter(|s| !s.is_empty());
     Ok(Statement::SlashCmd { command, arg })
 }
 
@@ -216,6 +217,14 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
+    fn is_eof(&self) -> bool {
+        self.pos >= self.input.len()
+    }
+
+    fn peek_char(&self) -> Option<char> {
+        self.input[self.pos..].chars().next()
+    }
+
     fn next_word(&mut self) -> Option<String> {
         self.skip_whitespace();
         let start = self.pos;
@@ -229,6 +238,10 @@ impl<'a> Tokenizer<'a> {
         } else {
             Some(self.input[start..self.pos].to_string())
         }
+    }
+
+    fn consume_rest_of_input_with_current_word(&self) -> String {
+        self.input.trim().to_string()
     }
 
     fn next_quoted_string(&mut self) -> Option<String> {
