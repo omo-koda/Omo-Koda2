@@ -54,6 +54,22 @@ pub struct PrivateSessionData {
     pub private_messages: Vec<ConversationMessage>,
 }
 
+impl PrivateSessionData {
+    pub fn push_private(&mut self, message: ConversationMessage) {
+        self.private_messages.push(message);
+        if self.private_messages.len() > 1000 {
+            // Compress oldest 20% to summary
+            let summary_text = format!("[SUMMARY: {} messages evicted for RACK]", 200);
+            let summary = ConversationMessage {
+                role: MessageRole::System,
+                blocks: vec![ContentBlock::Text { text: summary_text }],
+            };
+            self.private_messages.drain(0..200);
+            self.private_messages.insert(0, summary);
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ConversationMessage {
     pub role: MessageRole,
@@ -110,6 +126,10 @@ impl Session {
 
     pub fn push_public(&mut self, message: ConversationMessage) {
         self.public_messages.push(message);
+        if self.public_messages.len() > 100 {
+            // Remove oldest 20% (20 messages)
+            self.public_messages.drain(0..20);
+        }
     }
 
     pub fn save_to_path(&self, path: impl AsRef<Path>) -> Result<(), SessionError> {

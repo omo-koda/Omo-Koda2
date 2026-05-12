@@ -75,7 +75,9 @@ impl AgentState {
             primary_index,
             mnemonic,
         };
-        let pet_identity = PetIdentity::derive(&odu_identity, 0);
+        let receipts = ReceiptStore::new();
+        let hermetic_state = HermeticState::from_odu_seed(odu_seed.as_bytes());
+        let pet_identity = PetIdentity::derive(&odu_identity, &hermetic_state, 0);
 
         let dna_fingerprint = generate_dna_fingerprint(&name, birth_timestamp, odu_seed.as_bytes());
         let id = AgentId::new(&dna_fingerprint);
@@ -84,9 +86,6 @@ impl AgentState {
         for pair in metadata {
             session.apply_metadata(&pair.key, &pair.value);
         }
-
-        let receipts = ReceiptStore::new();
-        let hermetic_state = HermeticState::from_odu_seed(odu_seed.as_bytes());
 
         // Derive signing key
         let signing_key = derive_signing_key(&odu_seed);
@@ -166,7 +165,7 @@ impl AgentState {
 
     pub fn update_reputation(&mut self, new_rep: f64) {
         self.reputation = new_rep.clamp(0.0, 100.0);
-        self.pet_identity = PetIdentity::derive(&self.odu_identity, self.tier());
+        self.pet_identity = PetIdentity::derive(&self.odu_identity, &self.hermetic_state, self.tier());
         self.session.reputation = self.reputation;
     }
 }
@@ -236,10 +235,87 @@ impl Steward {
             Statement::Act { tool, params, sandbox } => {
                 self.act(tool, params, sandbox).await
             }
-            Statement::SlashCmd { .. } => {
-                Err("slash commands are not executable by the Steward".into())
+            Statement::SlashCmd { command, arg } => {
+                match command.as_str() {
+                    "configure" => self.slash_configure(arg),
+                    "status" => self.slash_status(),
+                    "tools" => self.slash_tools(),
+                    "help" => self.slash_help(),
+                    _ => Err(format!("unhandled slash command: /{command}")),
+                }
             }
         }
+    }
+
+    fn slash_configure(&mut self, arg: Option<String>) -> Result<ExecutionResult, String> {
+        let arg = arg.ok_or_else(|| "configure requires an argument (e.g., provider:ollama)".to_string())?;
+        let parts: Vec<&str> = arg.split(':').collect();
+        if parts.len() != 2 {
+            return Err("invalid configure format. Use key:value".to_string());
+        }
+        
+        let key = parts[0];
+        let value = parts[1];
+        
+        let agent = self.ensure_born_mut()?;
+        agent.session.apply_metadata(key, value);
+        self.auto_save();
+        
+        Ok(ExecutionResult {
+            receipt: None,
+            private_mode: false,
+            tool_output: Some(format!("Configured {key} to {value}")),
+        })
+    }
+
+    fn slash_status(&self) -> Result<ExecutionResult, String> {
+        self.ensure_born()?;
+        let agent = self.agent_state().unwrap();
+        let status = format!(
+            "Agent ID: {}\nName: {}\nReputation: {:.3}\nTier: {}\nMood: {}\nMask: {}",
+            agent.id(),
+            agent.name(),
+            agent.reputation(),
+            agent.tier(),
+            agent.pet_identity().mood,
+            agent.pet_identity().mask
+        );
+        
+        Ok(ExecutionResult {
+            receipt: None,
+            private_mode: false,
+            tool_output: Some(status),
+        })
+    }
+
+    fn slash_tools(&self) -> Result<ExecutionResult, String> {
+        self.ensure_born()?;
+        let tier = self.tier();
+        let tools = crate::reputation::tools_for_tier(tier);
+        let output = format!("Allowed tools for Tier {}:\n- {}", tier, tools.join("\n- "));
+        
+        Ok(ExecutionResult {
+            receipt: None,
+            private_mode: false,
+            tool_output: Some(output),
+        })
+    }
+
+    fn slash_help(&self) -> Result<ExecutionResult, String> {
+        let help_text = r#"Omokoda CLI Help:
+birth "<name>" [metadata...] - Create a new agent
+think "<prompt>" [/publish]   - Reasoning turn
+act "<tool>" "<params>" [/sandbox] - Execute a tool
+/status                      - Show agent status
+/tools                       - List allowed tools
+/configure <key>:<value>      - Update session config
+/help                        - Show this help"#;
+
+        Ok(ExecutionResult {
+            receipt: None,
+            private_mode: false,
+            tool_output: Some(help_text.to_string()),
+        })
     }
 
     pub async fn think(&mut self, prompt: String, private: bool) -> Result<ExecutionResult, String> {
@@ -373,6 +449,18 @@ impl Steward {
         if let Some(agent) = self.agent.as_mut() {
             agent.update_reputation(reputation);
         }
+        self.auto_save();
+    }
+
+    pub fn load_agent(&mut self, agent_id: &str) -> Result<(), String> {
+        let path = PathBuf::from("sessions").join(format!("{}.json", agent_id));
+        let content = std::fs::read_to_string(&path)
+            .map_err(|e| format!("failed to read agent file: {e}"))?;
+        let agent: AgentState = serde_json::from_str(&content)
+            .map_err(|e| format!("failed to deserialize agent: {e}"))?;
+        self.agent = Some(agent);
+        self.persistence_path = Some(path);
+        Ok(())
     }
 
     fn ensure_born(&self) -> Result<&AgentState, String> {
@@ -388,8 +476,18 @@ impl Steward {
     }
 
     fn auto_save(&self) {
-        if let (Some(agent), Some(path)) = (&self.agent, &self.persistence_path) {
-            let _ = agent.session.save_to_path(path);
+        if let Some(agent) = &self.agent {
+            let path = self.persistence_path.clone().unwrap_or_else(|| {
+                let dir = PathBuf::from("sessions");
+                if !dir.exists() {
+                    let _ = std::fs::create_dir_all(&dir);
+                }
+                dir.join(format!("{}.json", agent.id()))
+            });
+            
+            if let Ok(encoded) = serde_json::to_string_pretty(agent) {
+                let _ = std::fs::write(path, encoded);
+            }
         }
     }
 }
