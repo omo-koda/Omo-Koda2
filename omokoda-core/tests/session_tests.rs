@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod session_tests {
-    use omokoda_core::identity::odu::{OduIdentity, OduSeed};
+    use omokoda_core::identity::odu::OduSeed;
     use omokoda_core::interpreter::AgentState;
     use omokoda_core::session::{
         ContentBlock, ConversationMessage, PrivateSessionData, Session, SessionError,
@@ -12,7 +12,7 @@ mod session_tests {
     #[test]
     fn session_starts_with_current_version() {
         let agent = AgentState::birth("luna".to_string());
-        let session = Session::new(&agent);
+        let session = Session::new(agent.id().clone(), agent.name().to_string(), agent.birth_timestamp());
         assert_eq!(session.version, 1);
         assert_eq!(session.name, "luna");
         assert!(session.public_messages.is_empty());
@@ -22,7 +22,7 @@ mod session_tests {
     fn session_save_and_load_roundtrip() {
         let path = temp_session_path("roundtrip");
         let agent = AgentState::birth("luna".to_string());
-        let mut session = Session::new(&agent);
+        let mut session = Session::new(agent.id().clone(), agent.name().to_string(), agent.birth_timestamp());
         session.push_public(ConversationMessage::user_text("birth luna"));
         session.push_public(ConversationMessage::assistant_text("born"));
         session.push_public(ConversationMessage {
@@ -44,7 +44,7 @@ mod session_tests {
     #[test]
     fn session_encryption_roundtrip() {
         let agent = AgentState::birth("luna".to_string());
-        let mut session = Session::new(&agent);
+        let mut session = Session::new(agent.id().clone(), agent.name().to_string(), agent.birth_timestamp());
         let private_data = PrivateSessionData {
             odu_seed: OduSeed::from_bytes([1u8; 32]),
             odu_identity: agent.odu_identity().clone(),
@@ -63,7 +63,7 @@ mod session_tests {
     #[test]
     fn session_decryption_fails_with_wrong_passphrase() {
         let agent = AgentState::birth("luna".to_string());
-        let mut session = Session::new(&agent);
+        let mut session = Session::new(agent.id().clone(), agent.name().to_string(), agent.birth_timestamp());
         let private_data = PrivateSessionData {
             odu_seed: OduSeed::from_bytes([1u8; 32]),
             odu_identity: agent.odu_identity().clone(),
@@ -81,7 +81,7 @@ mod session_tests {
     #[test]
     fn session_leakage_prevention() {
         let agent = AgentState::birth("luna".to_string());
-        let mut session = Session::new(&agent);
+        let mut session = Session::new(agent.id().clone(), agent.name().to_string(), agent.birth_timestamp());
         let secret_text = "HIDDEN_TREASURE_123";
         let mut secret_seed = [0u8; 32];
         secret_seed[0] = 0xDE;

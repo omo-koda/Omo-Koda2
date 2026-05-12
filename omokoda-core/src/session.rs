@@ -1,5 +1,5 @@
 use crate::identity::odu::{OduIdentity, OduSeed};
-use crate::interpreter::{AgentId, AgentState};
+use crate::interpreter::AgentId;
 use chacha20poly1305::{
     aead::{Aead, KeyInit},
     ChaCha20Poly1305, Nonce,
@@ -68,13 +68,13 @@ pub enum ContentBlock {
 }
 
 impl Session {
-    pub fn new(agent: &AgentState) -> Self {
+    pub fn new(agent_id: AgentId, name: String, birth_timestamp: u64) -> Self {
         Self {
             version: SESSION_VERSION,
-            agent_id: agent.id().clone(),
-            name: agent.name().to_string(),
-            birth_timestamp: agent.birth_timestamp(),
-            reputation: agent.reputation(),
+            agent_id,
+            name,
+            birth_timestamp,
+            reputation: 0.0,
             public_messages: Vec::new(),
             encrypted_private: None,
         }

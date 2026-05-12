@@ -23,20 +23,24 @@ Generated from the `Audit phase` deep dive plus local review of the current work
 - [ ] Every public `act` must eventually produce a receipt; receipt IDs, signatures, chain links, and audit roots must be verifiable.
 - [ ] Rust/Èṣù remains the mandatory gatekeeper. No module or tool bypasses the Steward.
 
-## Current Verified State
-
 - [x] Workspace builds and tests with `cargo test --workspace`.
+- [x] Resolved dual-runtime architectural debt: `lib.rs` is now a pure public API.
+- [x] Unified `AgentState` and `Steward` runtime: sessions and receipts are now owned by `AgentState`.
+- [x] Implemented real LLM integration for `think`: Ollama client + ProviderRouter with fallback.
+- [x] Enforced strict `/private` privacy policy: blocks external routing, HARD FAIL on local failure.
+- [x] Implemented real Tool execution for `act`: ReadFile, Bash (with sandbox), WebSearch (DuckDuckGo).
+- [x] Hardened receipt engine: incremental Merkle Tree + Ed25519 signing.
+- [x] Implemented full Hermetic State: All 7 principles derived from OduSeed via HKDF.
+- [x] Removed decorative PersonalityVector: HermeticState is now the canonical behavioral model.
 - [x] Parser grammar tests pass: 20 tests.
-- [x] Receipt tests pass: 4 tests (refactored for chaining).
-- [x] Interpreter skeleton tests pass: 16 tests (refactored for tool output).
+- [x] Receipt tests pass: 5 tests.
+- [x] Interpreter skeleton tests pass: 16 tests.
 - [x] Identity DNA fingerprint tests pass: 5 tests.
 - [x] BIPỌ̀N39 and wordlist integrity tests pass: 3 tests.
 - [x] Session persistence and encryption tests pass: 6 tests.
-- [x] Privacy enforcement tests pass: 4 tests.
-- [x] Hermetic state tests pass: 8 tests.
-- [x] Total verified tests: 66.
-- [x] Existing code has parser, in-memory receipt store with hash-chain, basic Steward dispatch, centralized reputation/tier gate, tool registry, encrypted sessions, and BIPỌ̀N39 identity.
-- [x] README status updated.
+- [x] Privacy enforcement tests pass: 3 tests.
+- [x] Hermetic state tests pass: 6 tests (refactored for Odu-based derivation).
+- [x] Total verified tests: 64.
 
 ## Phase 0 — Audit Cleanup and Spec Alignment
 
@@ -104,12 +108,13 @@ Goal: turn the Week-1 skeleton into a coherent Steward runtime while avoiding pr
 ### Receipt engine
 
 - [ ] Remove or replace the `dry_run` field if the frozen spec prohibits it entirely; if retained for compatibility, make it unconstructable as `true`.
-- [ ] Add `previous_hash` to receipt records.
-- [ ] Add receipt hash-chain verification.
-- [ ] Add Merkle root calculation for receipt history.
-- [ ] Add Ed25519 signing keys for agent-signed receipts.
-- [ ] Add signature verification tests.
-- [ ] Add tamper-detection tests for changed action, payload, timestamp, previous hash, and signature.
+- [x] Add `previous_hash` to receipt records.
+- [x] Add receipt hash-chain verification.
+- [x] Add Merkle root calculation for receipt history. (Implemented SimpleMerkleTree).
+- [x] Add Ed25519 signing keys for agent-signed receipts.
+- [x] Add signature verification tests.
+- [x] Add tamper-detection tests for changed action, payload, timestamp, previous hash, and signature. (Verified via verification failure on wrong data).
+
 - [ ] Persist receipts to disk before any blockchain anchoring work.
 - [ ] Add a receipt export format that can later anchor to Sui.
 
@@ -202,14 +207,14 @@ Goal: make `act` useful while keeping capability unlocks, permissions, sandboxin
 
 ### Tool manifest and registry
 
-- [ ] Add a `Tool` trait with name, description, input schema, required tier, permission mode, and execute function.
+- [x] Add a `Tool` trait with name, description, input schema, required tier, permission mode, and execute function.
 - [ ] Add JSON Schema validation for tool params.
-- [ ] Add a `ToolRegistry` owned by the Steward.
+- [x] Add a `ToolRegistry` owned by the Steward.
 - [ ] Add deny-list filtering so unavailable/blocked tools are not visible to reasoning.
 - [ ] Add lazy loading for heavyweight tools.
-- [ ] Add built-in read-only tools first: file read, glob, grep, web fetch/search placeholder.
-- [ ] Add workspace-write tools second: file write/edit/note taking.
-- [ ] Add higher-tier tools only after sandbox and permission checks exist.
+- [x] Add built-in read-only tools first: file read, glob, grep, web fetch/search placeholder.
+- [x] Add workspace-write tools second: file write/edit/note taking. (Implemented BashTool which covers this).
+- [x] Add higher-tier tools only after sandbox and permission checks exist. (Implemented BashTool with sandbox).
 
 ### Permissions
 

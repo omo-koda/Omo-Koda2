@@ -17,6 +17,7 @@ const TIER_2_TOOLS: &[&str] = &[
     "grep",
     "image_gen_basic",
     "code_runner",
+    "bash",
 ];
 const TIER_3_TOOLS: &[&str] = &[
     "web_search",
@@ -26,6 +27,7 @@ const TIER_3_TOOLS: &[&str] = &[
     "grep",
     "image_gen_basic",
     "code_runner",
+    "bash",
     "data_analysis",
     "api_connect",
 ];
@@ -37,6 +39,7 @@ const TIER_4_TOOLS: &[&str] = &[
     "grep",
     "image_gen_basic",
     "code_runner",
+    "bash",
     "data_analysis",
     "api_connect",
     "agent_orchestration",
@@ -49,6 +52,7 @@ const TIER_5_TOOLS: &[&str] = &[
     "grep",
     "image_gen_basic",
     "code_runner",
+    "bash",
     "data_analysis",
     "api_connect",
     "agent_orchestration",
@@ -60,8 +64,8 @@ pub fn difficulty(reputation: f64) -> f64 {
     1.0 / (1.0 + (reputation / 25.0))
 }
 
-pub fn reputation_gain(base: f64, reputation: f64) -> f64 {
-    base * difficulty(reputation)
+pub fn reputation_gain(base: f64, reputation: f64, multiplier: f64) -> f64 {
+    base * difficulty(reputation) * multiplier
 }
 
 pub fn tier_for(reputation: f64) -> u8 {

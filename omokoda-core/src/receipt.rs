@@ -1,3 +1,4 @@
+use ed25519_dalek::{Signature, Signer, Verifier, VerifyingKey};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -9,12 +10,21 @@ pub struct Receipt {
     pub payload: String,
     pub receipt_id: String,
     pub previous_hash: String,
+    pub merkle_root: String,
+    pub signature: String,
     pub timestamp: u64,
     pub dry_run: bool,
 }
 
 impl Receipt {
-    pub fn new(agent_id: &str, action: &str, params: &str, previous_hash: &str) -> Self {
+    pub fn new_merkle(
+        agent_id: &str,
+        action: &str,
+        params: &str,
+        previous_hash: &str,
+        merkle_root: &str,
+        signing_key: &ed25519_dalek::SigningKey,
+    ) -> Self {
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("system clock before unix epoch")
@@ -30,8 +40,13 @@ impl Receipt {
             action.as_bytes(),
             params.as_bytes(),
             previous_hash.as_bytes(),
+            merkle_root.as_bytes(),
             timestamp_nanos.to_string().as_bytes(),
         ]);
+
+        // Sign the receipt_id
+        let signature = signing_key.sign(receipt_id.as_bytes());
+        let signature_hex = hex::encode(signature.to_bytes());
 
         Self {
             agent_id: agent_id.to_string(),
@@ -39,17 +54,35 @@ impl Receipt {
             payload,
             receipt_id,
             previous_hash: previous_hash.to_string(),
+            merkle_root: merkle_root.to_string(),
+            signature: signature_hex,
             timestamp,
             dry_run: false,
         }
     }
+
+    pub fn verify(&self, public_key_bytes: &[u8; 32]) -> Result<(), String> {
+        let verifying_key = VerifyingKey::from_bytes(public_key_bytes)
+            .map_err(|e| format!("invalid public key: {}", e))?;
+        
+        let signature_bytes = hex::decode(&self.signature)
+            .map_err(|e| format!("invalid signature hex: {}", e))?;
+        
+        let signature = Signature::from_slice(&signature_bytes)
+            .map_err(|e| format!("invalid signature bytes: {}", e))?;
+
+        verifying_key
+            .verify(self.receipt_id.as_bytes(), &signature)
+            .map_err(|e| format!("signature verification failed: {}", e))
+    }
 }
 
-#[derive(Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ReceiptStore {
     receipts: HashMap<String, Receipt>,
     last_hash: String,
     chain: Vec<String>,
+    merkle_tree: SimpleMerkleTree,
 }
 
 impl ReceiptStore {
@@ -58,6 +91,7 @@ impl ReceiptStore {
             receipts: HashMap::new(),
             last_hash: "0".repeat(64),
             chain: Vec::new(),
+            merkle_tree: SimpleMerkleTree::new(),
         }
     }
 
@@ -65,6 +99,7 @@ impl ReceiptStore {
         let id = receipt.receipt_id.clone();
         self.last_hash = id.clone();
         self.chain.push(id.clone());
+        self.merkle_tree.insert(id.clone());
         self.receipts.insert(id, receipt);
     }
 
@@ -74,6 +109,10 @@ impl ReceiptStore {
 
     pub fn last_hash(&self) -> &str {
         &self.last_hash
+    }
+
+    pub fn current_merkle_root(&self) -> String {
+        self.merkle_tree.root()
     }
 
     pub fn count(&self) -> usize {
@@ -93,6 +132,43 @@ impl ReceiptStore {
             }
         }
         true
+    }
+}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SimpleMerkleTree {
+    leaves: Vec<String>,
+}
+
+impl SimpleMerkleTree {
+    pub fn new() -> Self {
+        Self { leaves: Vec::new() }
+    }
+
+    pub fn insert(&mut self, hash: String) {
+        self.leaves.push(hash);
+    }
+
+    pub fn root(&self) -> String {
+        if self.leaves.is_empty() {
+            return "0".repeat(64);
+        }
+
+        let mut hashes: Vec<String> = self.leaves.clone();
+
+        while hashes.len() > 1 {
+            let mut next_level = Vec::new();
+            for i in (0..hashes.len()).step_by(2) {
+                if i + 1 < hashes.len() {
+                    next_level.push(blake3_hash_hex(&[hashes[i].as_bytes(), hashes[i + 1].as_bytes()]));
+                } else {
+                    next_level.push(hashes[i].clone());
+                }
+            }
+            hashes = next_level;
+        }
+
+        hashes[0].clone()
     }
 }
 

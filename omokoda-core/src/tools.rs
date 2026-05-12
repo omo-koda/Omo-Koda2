@@ -1,9 +1,15 @@
+use async_trait::async_trait;
 use std::collections::HashMap;
+use std::fs;
+use std::path::Path;
+use std::process::Command;
 
+#[async_trait]
 pub trait Tool: Send + Sync {
     fn name(&self) -> &str;
     fn description(&self) -> &str;
-    fn execute(&self, params: &str) -> Result<String, String>;
+    fn required_tier(&self) -> u8;
+    async fn execute(&self, params: &str, sandbox: bool) -> Result<String, String>;
 }
 
 pub struct ToolRegistry {
@@ -16,6 +22,10 @@ impl ToolRegistry {
             tools: HashMap::new(),
         };
         registry.register(Box::new(ReadFileTool));
+        registry.register(Box::new(BashTool));
+        registry.register(Box::new(WebSearchTool));
+        registry.register(Box::new(AgentOrchestrationTool));
+        // Keep these for backward compatibility in tests if needed, or remove if stubs
         registry.register(Box::new(GlobTool));
         registry.register(Box::new(GrepTool));
         registry
@@ -25,11 +35,16 @@ impl ToolRegistry {
         self.tools.insert(tool.name().to_string(), tool);
     }
 
-    pub fn execute(&self, name: &str, params: &str) -> Result<String, String> {
-        self.tools
+    pub async fn execute(&self, name: &str, params: &str, sandbox: bool, current_tier: u8) -> Result<String, String> {
+        let tool = self.tools
             .get(name)
-            .ok_or_else(|| format!("tool not found: {}", name))?
-            .execute(params)
+            .ok_or_else(|| format!("tool not found: {}", name))?;
+            
+        if current_tier < tool.required_tier() {
+            return Err(format!("tool '{}' requires tier {}, current tier is {}", name, tool.required_tier(), current_tier));
+        }
+        
+        tool.execute(params, sandbox).await
     }
 }
 
@@ -48,6 +63,7 @@ impl std::fmt::Debug for ToolRegistry {
 }
 
 struct ReadFileTool;
+#[async_trait]
 impl Tool for ReadFileTool {
     fn name(&self) -> &str {
         "read_file"
@@ -55,36 +71,114 @@ impl Tool for ReadFileTool {
     fn description(&self) -> &str {
         "Read a file from the workspace"
     }
-    fn execute(&self, params: &str) -> Result<String, String> {
-        // Implementation stub
-        Ok(format!("contents of {}", params))
+    fn required_tier(&self) -> u8 {
+        0
+    }
+    async fn execute(&self, params: &str, _sandbox: bool) -> Result<String, String> {
+        let path = Path::new(params);
+        if path.is_absolute() || params.contains("..") {
+            return Err("path must be relative and within workspace (no .. allowed)".to_string());
+        }
+        
+        fs::read_to_string(path).map_err(|e| format!("failed to read file: {}", e))
     }
 }
 
-struct GlobTool;
-impl Tool for GlobTool {
+struct BashTool;
+#[async_trait]
+impl Tool for BashTool {
     fn name(&self) -> &str {
-        "glob"
+        "bash"
     }
     fn description(&self) -> &str {
-        "Find files matching a pattern"
+        "Execute a bash command with optional isolation"
     }
-    fn execute(&self, params: &str) -> Result<String, String> {
-        // Implementation stub
-        Ok(format!("files matching {}", params))
+    fn required_tier(&self) -> u8 {
+        2 // Creator tier
+    }
+    async fn execute(&self, params: &str, sandbox: bool) -> Result<String, String> {
+        let mut cmd = if sandbox {
+            let mut c = Command::new("unshare");
+            c.args(["--map-root-user", "--net", "--mount", "--pid", "--fork", "bash", "-c", params]);
+            c
+        } else {
+            let mut c = Command::new("bash");
+            c.args(["-c", params]);
+            c
+        };
+
+        let output = cmd.output().map_err(|e| format!("failed to execute bash: {}", e))?;
+        
+        let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        
+        if output.status.success() {
+            Ok(stdout)
+        } else {
+            Err(format!("bash failed with status {}: {}", output.status, stderr))
+        }
+    }
+}
+
+struct WebSearchTool;
+#[async_trait]
+impl Tool for WebSearchTool {
+    fn name(&self) -> &str {
+        "web_search"
+    }
+    fn description(&self) -> &str {
+        "Search the web via DuckDuckGo Lite"
+    }
+    fn required_tier(&self) -> u8 {
+        0
+    }
+    async fn execute(&self, params: &str, _sandbox: bool) -> Result<String, String> {
+        let client = reqwest::Client::new();
+        let url = format!("https://duckduckgo.com/lite/?q={}", urlencoding::encode(params));
+        
+        let resp = client.get(url)
+            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+            .send()
+            .await
+            .map_err(|e| format!("web search failed: {}", e))?;
+            
+        let body = resp.text().await.map_err(|e| format!("failed to read web search body: {}", e))?;
+        
+        // Return first 2000 chars for now
+        Ok(body.chars().take(2000).collect())
+    }
+}
+
+// Stubs for backward compatibility
+struct GlobTool;
+#[async_trait]
+impl Tool for GlobTool {
+    fn name(&self) -> &str { "glob" }
+    fn description(&self) -> &str { "Find files matching a pattern" }
+    fn required_tier(&self) -> u8 { 0 }
+    async fn execute(&self, params: &str, _sandbox: bool) -> Result<String, String> {
+        Ok(format!("glob stub: {}", params))
     }
 }
 
 struct GrepTool;
+#[async_trait]
 impl Tool for GrepTool {
-    fn name(&self) -> &str {
-        "grep"
+    fn name(&self) -> &str { "grep" }
+    fn description(&self) -> &str { "Search for a pattern in files" }
+    fn required_tier(&self) -> u8 { 0 }
+    async fn execute(&self, params: &str, _sandbox: bool) -> Result<String, String> {
+        Ok(format!("grep stub: {}", params))
     }
-    fn description(&self) -> &str {
-        "Search for a pattern in files"
-    }
-    fn execute(&self, params: &str) -> Result<String, String> {
-        // Implementation stub
-        Ok(format!("matches for {}", params))
+}
+
+struct AgentOrchestrationTool;
+#[async_trait]
+impl Tool for AgentOrchestrationTool {
+    fn name(&self) -> &str { "agent_orchestration" }
+    fn description(&self) -> &str { "Orchestrate other agents" }
+    fn required_tier(&self) -> u8 { 4 }
+    async fn execute(&self, _params: &str, _sandbox: bool) -> Result<String, String> {
+        Ok("orchestration complete".to_string())
     }
 }

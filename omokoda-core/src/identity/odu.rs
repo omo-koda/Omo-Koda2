@@ -19,6 +19,10 @@ impl OduSeed {
     pub fn len(&self) -> usize {
         32
     }
+
+    pub fn is_empty(&self) -> bool {
+        false
+    }
 }
 
 impl AsRef<[u8]> for OduSeed {

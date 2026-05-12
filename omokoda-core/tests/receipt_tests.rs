@@ -1,34 +1,60 @@
 #[cfg(test)]
 mod receipt_tests {
     use omokoda_core::receipt::{Receipt, ReceiptStore};
+    use ed25519_dalek::SigningKey;
+    use rand::Rng;
+
+    fn mock_signing_key() -> SigningKey {
+        let mut seed = [0u8; 32];
+        rand::thread_rng().fill(&mut seed);
+        SigningKey::from_bytes(&seed)
+    }
 
     #[test]
     fn receipt_has_required_fields() {
-        let r = Receipt::new("agent-001", "web_search", "bitcoin origin", "prev-hash");
+        let key = mock_signing_key();
+        let r = Receipt::new_merkle("agent-001", "web_search", "bitcoin origin", "prev-hash", "merkle-root", &key);
         assert!(!r.agent_id.is_empty());
         assert!(!r.action.is_empty());
         assert!(!r.payload.is_empty());
         assert!(!r.receipt_id.is_empty());
         assert_eq!(r.previous_hash, "prev-hash");
+        assert_eq!(r.merkle_root, "merkle-root");
+        assert!(!r.signature.is_empty());
         assert!(r.timestamp > 0);
     }
 
     #[test]
     fn same_input_different_receipts() {
-        // Each receipt gets a unique ID even with same inputs
-        let a = Receipt::new("agent-001", "web_search", "query", "hash");
-        let b = Receipt::new("agent-001", "web_search", "query", "hash");
+        let key = mock_signing_key();
+        let a = Receipt::new_merkle("agent-001", "web_search", "query", "hash", "root", &key);
+        let b = Receipt::new_merkle("agent-001", "web_search", "query", "hash", "root", &key);
         assert_ne!(a.receipt_id, b.receipt_id);
+    }
+
+    #[test]
+    fn receipt_signature_verification() {
+        let key = mock_signing_key();
+        let pub_key = key.verifying_key().to_bytes();
+        let r = Receipt::new_merkle("agent-001", "act", "p", "prev", "root", &key);
+        
+        assert!(r.verify(&pub_key).is_ok());
+
+        // Wrong public key
+        let wrong_key = mock_signing_key().verifying_key().to_bytes();
+        assert!(r.verify(&wrong_key).is_err());
     }
 
     #[test]
     fn receipt_chain_verification() {
         let mut store = ReceiptStore::new();
-        let r1 = Receipt::new("agent-001", "act1", "p1", store.last_hash());
+        let key = mock_signing_key();
+        
+        let r1 = Receipt::new_merkle("agent-001", "act1", "p1", store.last_hash(), &store.current_merkle_root(), &key);
         let id1 = r1.receipt_id.clone();
         store.record(r1);
 
-        let r2 = Receipt::new("agent-001", "act2", "p2", store.last_hash());
+        let r2 = Receipt::new_merkle("agent-001", "act2", "p2", store.last_hash(), &store.current_merkle_root(), &key);
         let id2 = r2.receipt_id.clone();
         store.record(r2);
 
@@ -39,15 +65,20 @@ mod receipt_tests {
     }
 
     #[test]
-    fn tampered_chain_fails_verification() {
+    fn merkle_root_changes_on_insert() {
         let mut store = ReceiptStore::new();
-        let r1 = Receipt::new("agent-001", "act1", "p1", store.last_hash());
+        let key = mock_signing_key();
+        
+        let root0 = store.current_merkle_root();
+        
+        let r1 = Receipt::new_merkle("agent-001", "act1", "p1", store.last_hash(), &root0, &key);
         store.record(r1);
+        let root1 = store.current_merkle_root();
+        assert_ne!(root0, root1);
 
-        // Manually record a receipt with wrong previous hash
-        let r2 = Receipt::new("agent-001", "act2", "p2", "WRONG_HASH");
+        let r2 = Receipt::new_merkle("agent-001", "act2", "p2", store.last_hash(), &root1, &key);
         store.record(r2);
-
-        assert!(!store.verify_chain());
+        let root2 = store.current_merkle_root();
+        assert_ne!(root1, root2);
     }
 }

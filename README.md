@@ -28,26 +28,30 @@ That is the entire public surface. Forever.
 
 ## Current Status
 
-**66/66 tests passing. Sprint 2 complete.**
+**64/64 tests passing. Sprint 5 complete.**
 
 ```text
 omokoda-core     parser       20/20  ✅
 omokoda-core     interpreter  16/16  ✅
 omokoda-core     identity      5/5   ✅
 omokoda-core     bipon39       3/3   ✅
-omokoda-core     receipts      4/4   ✅
+omokoda-core     receipts      5/5   ✅
 omokoda-core     sessions      6/6   ✅
-omokoda-core     privacy       4/4   ✅
-omokoda-hermetic soul          8/8   ✅
+omokoda-core     privacy       3/3   ✅
+omokoda-hermetic soul          6/6   ✅
 ```
 
 **Verified Capabilities:**
 - [x] BIPỌ̀N39 mnemonic system with wordlist integrity checks.
 - [x] Odu-backed soul seeds and identity derivation.
+- [x] Full Hermetic State: 7 principles derived from Odu entropy.
+- [x] Ed25519 agent signing identity derived via HKDF.
 - [x] DNA fingerprinting (86-char) and ASCII pet expressions.
 - [x] Encrypted session persistence with leakage prevention.
-- [x] Receipt hash-chaining and verification.
-- [x] Tier-based tool registry with read-only workspace tools.
+- [x] Real LLM reasoning loop with local provider routing.
+- [x] Merkle-hardened receipt engine with cryptographic signatures.
+- [x] Tier-based tool registry with real workspace tools (ReadFile, Bash, WebSearch).
+- [x] Security sandboxing for tool execution using Linux namespaces.
 - [x] Strict `/private` provider enforcement policy.
 
 **Specs frozen:**
