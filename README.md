@@ -28,7 +28,7 @@ That is the entire public surface. Forever.
 
 ## Current Status
 
-**69/69 tests passing. Sprint 6 complete.**
+**76/76 tests passing. Sprint 7 complete.**
 
 ```text
 omokoda-core     parser       20/20  ✅
@@ -40,6 +40,7 @@ omokoda-core     sessions      6/6   ✅
 omokoda-core     privacy       3/3   ✅
 omokoda-core     justice       4/4   ✅
 omokoda-hermetic soul          6/6   ✅
+omokoda-swarm    orchestration 7/7   ✅
 ```
 
 **Verified Capabilities:**
@@ -55,6 +56,9 @@ omokoda-hermetic soul          6/6   ✅
 - [x] Tier-based tool registry with real workspace tools (ReadFile, Bash, WebSearch).
 - [x] Security sandboxing for tool execution using Linux namespaces.
 - [x] Strict `/private` provider enforcement policy.
+- [x] Elixir/OTP swarm orchestration with dynamic agent supervision.
+- [x] Distributed task delegation and witness consensus mechanisms.
+- [x] Sub-agent coordination with load balancing and fault tolerance.
 
 **Specs frozen:**
 - `specs/language.md` — EBNF grammar
@@ -122,9 +126,21 @@ Detailed documentation on the architecture, audit findings, and roadmap can be f
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 source "$HOME/.cargo/env"
 
+# Install Elixir
+sudo apt update && sudo apt install -y elixir
+
 # Run tests
 cargo test --package omokoda-core
 cargo test --package omokoda-hermetic
+cd omokoda-swarm && mix test
+```
+
+## Frontend setup
+
+```bash
+cd omokoda-frontend
+npm install
+npm run dev
 ```
 
 ---
@@ -138,6 +154,7 @@ omokoda/
 ├── omokoda-hermetic/ ← Hermetic soul engine
 ├── omokoda-sui/      ← Sui Move contract skeleton and registry
 ├── omokoda-frontend/ ← Next.js frontend skeleton
+├── omokoda-swarm/    ← Elixir/OTP distributed agent orchestration
 ```
 
 ## Additional Work
