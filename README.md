@@ -28,7 +28,7 @@ That is the entire public surface. Forever.
 
 ## Current Status
 
-**76/76 tests passing. Sprint 7 complete.**
+**83/83 tests passing. Sprint 8 complete.**
 
 ```text
 omokoda-core     parser       20/20  ✅
@@ -41,6 +41,7 @@ omokoda-core     privacy       3/3   ✅
 omokoda-core     justice       4/4   ✅
 omokoda-hermetic soul          6/6   ✅
 omokoda-swarm    orchestration 7/7   ✅
+omokoda-ops      monitoring   13/13  ✅
 ```
 
 **Verified Capabilities:**
@@ -59,6 +60,10 @@ omokoda-swarm    orchestration 7/7   ✅
 - [x] Elixir/OTP swarm orchestration with dynamic agent supervision.
 - [x] Distributed task delegation and witness consensus mechanisms.
 - [x] Sub-agent coordination with load balancing and fault tolerance.
+- [x] Go operations service with Prometheus metrics and health monitoring.
+- [x] Agent lifecycle tracking and stale agent detection.
+- [x] Economic simulation suite with Dopamine/Synapse dynamics.
+- [x] External security audit with risk assessment and recommendations.
 
 **Specs frozen:**
 - `specs/language.md` — EBNF grammar
@@ -129,10 +134,15 @@ source "$HOME/.cargo/env"
 # Install Elixir
 sudo apt update && sudo apt install -y elixir
 
+# Install Go
+sudo apt install -y golang-go
+
 # Run tests
 cargo test --package omokoda-core
 cargo test --package omokoda-hermetic
 cd omokoda-swarm && mix test
+cd ../omokoda-ops && go test
+cd ../omokoda-simulation && python3 simulation.py
 ```
 
 ## Frontend setup
@@ -141,6 +151,16 @@ cd omokoda-swarm && mix test
 cd omokoda-frontend
 npm install
 npm run dev
+```
+
+## Operations service
+
+```bash
+cd omokoda-ops
+go build -o omokoda-ops .
+./omokoda-ops
+# Service runs on http://localhost:8080
+# Metrics available at http://localhost:8080/metrics
 ```
 
 ---
