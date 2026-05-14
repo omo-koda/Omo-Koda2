@@ -134,13 +134,17 @@ cargo test --package omokoda-hermetic
 ```text
 omokoda/
 ├── specs/            ← frozen specifications (source of truth)
-├── omokoda-core/     ← Rust parser, receipt engine, interpreter (next)
+├── omokoda-core/     ← Rust parser, receipt engine, interpreter
 ├── omokoda-hermetic/ ← Hermetic soul engine
-├── contracts/        ← Sui Move (Week 4)
-├── frontend/         ← Next.js 15 PWA (Week 3)
-├── omokoda-swarm/    ← Elixir/OTP (Week 4)
-└── omokoda-ops/      ← Go node operators (Week 4)
+├── omokoda-sui/      ← Sui Move contract skeleton and registry
+├── omokoda-frontend/ ← Next.js frontend skeleton
 ```
+
+## Additional Work
+
+- `omokoda-sui/` contains the Sui Move contract skeleton for on-chain identity and reputation.
+- `omokoda-frontend/` contains a Next.js app skeleton for the agent dashboard and wallet integration.
+- `omokoda-core/benches/` contains performance benchmark harnesses for provider routing and WASM sandbox execution.
 
 ---
 

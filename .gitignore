@@ -1,2 +1,10 @@
 target/
 omokoda-core/sessions/
+
+# Frontend and package artifacts
+omokoda-frontend/node_modules/
+omokoda-frontend/.next/
+omokoda-frontend/out/
+
+# Sui Move build artifacts
+omokoda-sui/build/
