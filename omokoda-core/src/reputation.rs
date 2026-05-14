@@ -48,6 +48,37 @@ impl ReputationLedger {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+pub enum PermissionMode {
+    ReadOnly,
+    WorkspaceWrite,
+    DangerFullAccess,
+    Prompt,
+    Allow,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct PermissionPolicy {
+    pub active_mode: PermissionMode,
+}
+
+impl Default for PermissionPolicy {
+    fn default() -> Self {
+        Self {
+            active_mode: PermissionMode::ReadOnly,
+        }
+    }
+}
+
+pub fn mode_for_tier(tier: u8) -> PermissionMode {
+    match tier {
+        0 => PermissionMode::ReadOnly,
+        1 | 2 => PermissionMode::WorkspaceWrite,
+        3 | 4 => PermissionMode::Prompt,
+        _ => PermissionMode::Allow,
+    }
+}
+
 const TIER_0_TOOLS: &[&str] = &["web_search", "note_taking", "read_file", "glob", "grep"];
 const TIER_1_TOOLS: &[&str] = &[
     "web_search",

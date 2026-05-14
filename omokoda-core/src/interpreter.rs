@@ -179,12 +179,13 @@ impl AgentState {
     }
 
     pub fn add_message(&mut self, message: ConversationMessage) {
+        let rep = self.reputation;
         if message.is_private {
             if let Some(pd) = &mut self.private_data {
-                pd.push_private(message);
+                pd.push_private(message, rep);
             }
         } else {
-            self.session.add_message(message);
+            self.session.add_message(message, rep);
         }
     }
 
@@ -225,8 +226,14 @@ pub struct Steward {
     justice: JusticeEngine,
     #[serde(skip)]
     persistence_path: Option<PathBuf>,
+    #[serde(skip, default = "default_session_dir")]
+    session_dir: PathBuf,
     #[serde(skip)]
     unlock_key: Option<[u8; 32]>,
+}
+
+fn default_session_dir() -> PathBuf {
+    PathBuf::from("sessions")
 }
 
 impl Default for Steward {
@@ -243,8 +250,13 @@ impl Steward {
             providers: ProviderRegistry::new(),
             justice: JusticeEngine::new(),
             persistence_path: None,
+            session_dir: default_session_dir(),
             unlock_key: None,
         }
+    }
+
+    pub fn set_session_dir(&mut self, path: PathBuf) {
+        self.session_dir = path;
     }
 
     pub fn set_persistence_path(&mut self, path: PathBuf) {
@@ -257,6 +269,14 @@ impl Steward {
 
     pub fn register_provider(&mut self, provider: Box<dyn crate::providers::LlmProvider>) {
         self.providers.register(provider);
+    }
+
+    pub fn add_pre_hook(&mut self, hook: Box<dyn crate::justice::Hook>) {
+        self.justice.hook_runner.pre_act.push(hook);
+    }
+
+    pub fn add_post_hook(&mut self, hook: Box<dyn crate::justice::Hook>) {
+        self.justice.hook_runner.post_act.push(hook);
     }
 
     pub async fn dispatch(&mut self, stmt: Statement) -> Result<ExecutionResult, String> {
@@ -322,6 +342,26 @@ impl Steward {
             } => {
                 let agent = self.ensure_born()?;
                 let tier = agent.tier();
+                let reputation = agent.reputation();
+
+                // Justice HookRunner: Pre-act
+                let hook_ctx = crate::justice::HookContext {
+                    tool_name: tool.clone(),
+                    input: params.clone(),
+                    output: None,
+                    reputation,
+                    tier,
+                };
+                match self.justice.hook_runner.run_pre(&hook_ctx) {
+                    crate::justice::HookDecision::Deny(reason) => {
+                        return Err(format!("Hook denied execution: {}", reason))
+                    }
+                    crate::justice::HookDecision::Warn(warning) => {
+                        // TODO: Emit warning event if sink is available
+                        println!("Hook warning: {}", warning);
+                    }
+                    crate::justice::HookDecision::Allow => {}
+                }
 
                 if !self.tools.is_allowed(&tool, tier) {
                     return Err(format!(
@@ -348,6 +388,24 @@ impl Steward {
                     &output,
                     true,
                 );
+
+                // Justice HookRunner: Post-act
+                let post_hook_ctx = crate::justice::HookContext {
+                    tool_name: tool.clone(),
+                    input: params.clone(),
+                    output: Some(output.clone()),
+                    reputation: new_rep,
+                    tier: tier_for(new_rep),
+                };
+                match self.justice.hook_runner.run_post(&post_hook_ctx) {
+                    crate::justice::HookDecision::Deny(reason) => {
+                        return Err(format!("Post-act hook denied: {}", reason))
+                    }
+                    crate::justice::HookDecision::Warn(warning) => {
+                        println!("Post-act hook warning: {}", warning);
+                    }
+                    crate::justice::HookDecision::Allow => {}
+                }
 
                 let agent_mut = self.ensure_born_mut()?;
                 agent_mut.update_reputation(new_rep, ReputationChangeReason::Act);
@@ -625,28 +683,25 @@ impl Steward {
 
     fn auto_save(&self) {
         if let Some(agent) = &self.agent {
-            if let Some(path) = &self.persistence_path {
-                if let Ok(content) = serde_json::to_string_pretty(agent) {
-                    let _ = std::fs::write(path, content);
-                }
+            let path = if let Some(p) = &self.persistence_path {
+                p.clone()
             } else {
-                // Default save to sessions/<id>.json if no path set
-                let dir = std::path::Path::new("sessions");
-                if !dir.exists() {
-                    let _ = std::fs::create_dir_all(dir);
+                if !self.session_dir.exists() {
+                    let _ = std::fs::create_dir_all(&self.session_dir);
                 }
-                let path = dir.join(format!("{}.json", agent.id()));
-                if let Ok(content) = serde_json::to_string_pretty(agent) {
-                    let _ = std::fs::write(path, content);
-                }
+                self.session_dir.join(format!("{}.json", agent.id()))
+            };
+
+            if let Ok(content) = serde_json::to_string_pretty(agent) {
+                let _ = std::fs::write(path, content);
             }
         }
     }
 
     pub fn load_agent(&mut self, agent_id: &AgentId) -> Result<(), String> {
-        let path = PathBuf::from("sessions").join(format!("{}.json", agent_id));
+        let path = self.session_dir.join(format!("{}.json", agent_id));
         let content = std::fs::read_to_string(&path)
-            .map_err(|e| format!("failed to read agent file: {e}"))?;
+            .map_err(|e| format!("failed to read agent file at {:?}: {e}", path))?;
         let agent: AgentState = serde_json::from_str(&content)
             .map_err(|e| format!("failed to deserialize agent: {e}"))?;
 

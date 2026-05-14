@@ -58,4 +58,47 @@ mod justice_tests {
 
         assert!(gain_useful > gain_basic);
     }
+
+    #[test]
+    fn hook_runner_pre_act_denial() {
+        use omokoda_core::justice::{HookRunner, HookContext, HookDecision, ReputationGate};
+        let mut runner = HookRunner::new();
+        runner.pre_act.push(Box::new(ReputationGate { min_reputation: 50.0 }));
+
+        let ctx = HookContext {
+            tool_name: "test_tool".to_string(),
+            input: "input".to_string(),
+            output: None,
+            reputation: 10.0,
+            tier: 0,
+        };
+
+        match runner.run_pre(&ctx) {
+            HookDecision::Deny(reason) => assert!(reason.contains("Reputation too low")),
+            _ => panic!("Should have been denied"),
+        }
+
+        let ctx_high = HookContext {
+            tool_name: "test_tool".to_string(),
+            input: "input".to_string(),
+            output: None,
+            reputation: 60.0,
+            tier: 2,
+        };
+        assert!(matches!(runner.run_pre(&ctx_high), HookDecision::Allow));
+    }
+
+    #[tokio::test]
+    async fn steward_act_respects_hook_denial() {
+        use omokoda_core::justice::{ReputationGate};
+        let mut steward = Steward::new();
+        steward.dispatch(parse(r#"birth "luna""#).unwrap()[0].clone()).await.unwrap();
+        steward.set_reputation_for_test(10.0);
+        
+        steward.add_pre_hook(Box::new(ReputationGate { min_reputation: 50.0 }));
+
+        let res = steward.dispatch(parse(r#"act "read_file" "basic.txt""#).unwrap()[0].clone()).await;
+        assert!(res.is_err());
+        assert!(res.unwrap_err().contains("Hook denied execution"));
+    }
 }

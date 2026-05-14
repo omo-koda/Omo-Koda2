@@ -47,6 +47,7 @@ pub struct EncryptedData {
     pub ciphertext: Vec<u8>,
     pub nonce: [u8; 12],
     pub salt: [u8; 16],
+    pub key_version: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -113,18 +114,16 @@ impl Session {
         }
     }
 
-    pub fn add_message(&mut self, message: ConversationMessage) {
+    pub fn add_message(&mut self, message: ConversationMessage, reputation: f64) {
         if !message.is_private {
-            self.push_public(message);
+            self.push_public(message, reputation);
         }
     }
 
-    pub fn push_public(&mut self, message: ConversationMessage) {
+    pub fn push_public(&mut self, message: ConversationMessage, reputation: f64) {
         self.public_messages.push(message);
-        if self.public_messages.len() > 100 {
-            // RACK eviction: remove first 20 messages
-            self.public_messages.drain(0..20);
-        }
+        let engine = crate::memory::MemoryEngine::new();
+        engine.compress(&mut self.public_messages, reputation);
     }
 
     pub fn seal_private(
@@ -133,8 +132,18 @@ impl Session {
         odu_seed: &OduSeed,
         password_key: &[u8; 32],
     ) -> Result<(), String> {
+        self.seal_private_with_version(private_data, odu_seed, password_key, 1)
+    }
+
+    fn seal_private_with_version(
+        &mut self,
+        private_data: &PrivateSessionData,
+        odu_seed: &OduSeed,
+        password_key: &[u8; 32],
+        key_version: u32,
+    ) -> Result<(), String> {
         let salt = generate_salt(&self.agent_id, self.birth_timestamp);
-        let key = derive_session_key(odu_seed, &salt, password_key);
+        let key = derive_session_key(odu_seed, &salt, password_key, key_version);
 
         let json = serde_json::to_string(private_data)
             .map_err(|e| format!("failed to serialize private data: {e}"))?;
@@ -152,6 +161,7 @@ impl Session {
             ciphertext,
             nonce: nonce_bytes,
             salt,
+            key_version,
         });
 
         Ok(())
@@ -167,7 +177,7 @@ impl Session {
             .as_ref()
             .ok_or_else(|| "no encrypted private data found".to_string())?;
 
-        let key = derive_session_key(odu_seed, &data.salt, password_key);
+        let key = derive_session_key(odu_seed, &data.salt, password_key, data.key_version);
         let cipher = ChaCha20Poly1305::new(&key.into());
         let nonce = Nonce::from_slice(&data.nonce);
 
@@ -179,6 +189,18 @@ impl Session {
             .map_err(|e| format!("failed to deserialize private data: {e}"))?;
 
         Ok(private_data)
+    }
+
+    pub fn rotate_key(
+        &mut self,
+        odu_seed: &OduSeed,
+        old_password_key: &[u8; 32],
+        new_password_key: &[u8; 32],
+    ) -> Result<(), String> {
+        let private_data = self.unseal_private(odu_seed, old_password_key)?;
+        let new_version = self.encrypted_private.as_ref().map(|d| d.key_version).unwrap_or(0) + 1;
+        self.seal_private_with_version(&private_data, odu_seed, new_password_key, new_version)?;
+        Ok(())
     }
 
     pub fn save(&self, path: &Path) -> Result<(), String> {
@@ -195,21 +217,10 @@ impl Session {
 }
 
 impl PrivateSessionData {
-    pub fn push_private(&mut self, message: ConversationMessage) {
+    pub fn push_private(&mut self, message: ConversationMessage, reputation: f64) {
         self.private_messages.push(message);
-        if self.private_messages.len() > 1000 {
-            // RACK eviction: remove first 200 messages and add summary
-            self.private_messages.drain(0..200);
-            let summary = ConversationMessage {
-                role: MessageRole::System,
-                blocks: vec![ContentBlock::Text {
-                    text: "[SYSTEM SUMMARY OF EVICTED MESSAGES]".to_string(),
-                }],
-                is_private: true,
-                timestamp: current_unix_timestamp(),
-            };
-            self.private_messages.insert(0, summary);
-        }
+        let engine = crate::memory::MemoryEngine::new();
+        engine.compress(&mut self.private_messages, reputation);
     }
 }
 
@@ -262,6 +273,7 @@ fn derive_session_key(
     odu_seed: &OduSeed,
     salt: &[u8; 16],
     password_key: &[u8; 32],
+    key_version: u32,
 ) -> [u8; 32] {
     let params = Params::new(
         ARGON2_MEMORY_KB,
@@ -274,9 +286,10 @@ fn derive_session_key(
     let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
     let mut okm = [0u8; 32];
 
-    let mut combined_salt = Vec::with_capacity(48);
+    let mut combined_salt = Vec::with_capacity(52);
     combined_salt.extend_from_slice(salt);
     combined_salt.extend_from_slice(odu_seed.as_bytes());
+    combined_salt.extend_from_slice(&key_version.to_be_bytes());
 
     argon2
         .hash_password_into(password_key, &combined_salt, &mut okm)

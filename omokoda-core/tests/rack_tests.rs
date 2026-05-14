@@ -5,59 +5,42 @@ mod rack_tests {
     use omokoda_core::identity::odu::{OduSeed, OduIdentity};
 
     #[test]
-    fn public_messages_evicts_after_100() {
+    fn public_messages_compression_level_1() {
         let mut session = Session::new(AgentId::new("0123456789abcdefghij"), "luna".to_string(), 0);
         
-        for i in 0..100 {
-            session.push_public(ConversationMessage::user_text(&format!("msg {}", i)));
-        }
-        assert_eq!(session.public_messages.len(), 100);
+        // Large tool result to trigger ContentReplace (Level 1)
+        let large_output = "A".repeat(5000);
+        let msg = ConversationMessage {
+            role: MessageRole::Tool,
+            blocks: vec![ContentBlock::ToolResult {
+                tool_use_id: "test".to_string(),
+                output: large_output,
+                is_error: false,
+            }],
+            is_private: false,
+            timestamp: 0,
+        };
+
+        session.push_public(msg, 0.0);
         
-        // 101st message should trigger eviction
-        session.push_public(ConversationMessage::user_text("msg 101"));
-        
-        // Should have 100 + 1 - 20 = 81 messages
-        assert_eq!(session.public_messages.len(), 81);
-        
-        // The first remaining message should be "msg 20"
-        if let ContentBlock::Text { text } = &session.public_messages[0].blocks[0] {
-            assert_eq!(text, "msg 20");
+        if let ContentBlock::ToolResult { output, .. } = &session.public_messages[0].blocks[0] {
+            assert!(output.len() <= 1025); // 1000 + truncation message
+            assert!(output.contains("[TRUNCATED]"));
         } else {
             panic!("Unexpected content block type");
         }
     }
 
     #[test]
-    fn private_messages_evicts_and_summarizes_after_1000() {
-        let mut private_data = PrivateSessionData {
-            odu_seed: OduSeed::new([0u8; 32]),
-            odu_identity: OduIdentity { primary_index: 0, mnemonic: "test".to_string() },
-            private_messages: Vec::new(),
-        };
-
-        for i in 0..1000 {
-            private_data.push_private(ConversationMessage::user_text(&format!("msg {}", i)));
+    fn public_messages_compression_level_2() {
+        let mut session = Session::new(AgentId::new("0123456789abcdefghij"), "luna".to_string(), 0);
+        
+        // Push many non-essential messages to exceed Level 2 threshold (8000 chars)
+        for i in 0..100 {
+            session.push_public(ConversationMessage::user_text(&"B".repeat(100)), 0.0);
         }
-        assert_eq!(private_data.private_messages.len(), 1000);
-
-        // 1001st message should trigger eviction and summary
-        private_data.push_private(ConversationMessage::user_text("msg 1001"));
-
-        assert_eq!(private_data.private_messages.len(), 802);
-
-        // The first message should be the summary
-        assert_eq!(private_data.private_messages[0].role, MessageRole::System);
-        if let ContentBlock::Text { text } = &private_data.private_messages[0].blocks[0] {
-            assert!(text.contains("SUMMARY"));
-        } else {
-            panic!("Unexpected content block type");
-        }
-
-        // The second message should be "msg 200"
-        if let ContentBlock::Text { text } = &private_data.private_messages[1].blocks[0] {
-            assert_eq!(text, "msg 200");
-        } else {
-            panic!("Unexpected content block type");
-        }
+        
+        // Snip should have removed some messages
+        assert!(session.public_messages.len() < 100);
     }
 }

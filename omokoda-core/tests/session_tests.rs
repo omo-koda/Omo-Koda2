@@ -25,8 +25,8 @@ fn session_persistence_roundtrip() {
 
     let agent_id = AgentId::from_str("agent-1");
     let mut session = Session::new(agent_id, "luna".to_string(), 12345);
-    session.add_message(ConversationMessage::new_user("hello".to_string(), false));
-    session.add_message(ConversationMessage::new_assistant("hi".to_string(), false));
+    session.add_message(ConversationMessage::new_user("hello".to_string(), false), 0.0);
+    session.add_message(ConversationMessage::new_assistant("hi".to_string(), false), 0.0);
 
     session.save(path).unwrap();
 
@@ -128,4 +128,68 @@ fn session_decryption_fails_with_wrong_password_key() {
     let mut wrong_key = [1u8; 32];
     let result = session.unseal_private(&odu_seed, &wrong_key);
     assert!(result.is_err());
+}
+
+#[test]
+fn session_key_rotation_works() {
+    let agent_id = AgentId::from_str("agent-1");
+    let mut session = Session::new(agent_id, "luna".to_string(), 12345);
+    
+    let odu_seed = OduSeed::new([1u8; 32]);
+    let odu_identity = OduIdentity {
+        primary_index: 0,
+        mnemonic: "test".to_string(),
+    };
+
+    let private_data = PrivateSessionData {
+        odu_seed: odu_seed.clone(),
+        odu_identity: odu_identity.clone(),
+        private_messages: vec![ConversationMessage::new_user("secret".to_string(), true)],
+    };
+
+    let old_key = [0u8; 32];
+    session.seal_private(&private_data, &odu_seed, &old_key).unwrap();
+
+    let new_key = [2u8; 32];
+    session.rotate_key(&odu_seed, &old_key, &new_key).unwrap();
+
+    // Old key should fail
+    assert!(session.unseal_private(&odu_seed, &old_key).is_err());
+
+    // New key should work
+    let decrypted = session.unseal_private(&odu_seed, &new_key).unwrap();
+    if let ContentBlock::Text { text } = &decrypted.private_messages[0].blocks[0] {
+        assert_eq!(text, "secret");
+    } else {
+        panic!("Wrong block type");
+    }
+}
+
+#[test]
+fn session_leakage_test() {
+    let agent_id = AgentId::from_str("agent-1");
+    let mut session = Session::new(agent_id, "luna".to_string(), 12345);
+    
+    let odu_seed = OduSeed::new([1u8; 32]);
+    let odu_identity = OduIdentity {
+        primary_index: 0,
+        mnemonic: "test".to_string(),
+    };
+
+    let private_data = PrivateSessionData {
+        odu_seed: odu_seed.clone(),
+        odu_identity: odu_identity.clone(),
+        private_messages: vec![ConversationMessage::new_user("THIS_IS_A_SECRET".to_string(), true)],
+    };
+
+    let password_key = [0u8; 32];
+    session.seal_private(&private_data, &odu_seed, &password_key).unwrap();
+
+    let serialized = serde_json::to_string(&session).unwrap();
+    
+    // The secret string should NOT appear in the serialized JSON
+    assert!(!serialized.contains("THIS_IS_A_SECRET"));
+    
+    // But the encrypted data should be there
+    assert!(serialized.contains("encrypted_private"));
 }

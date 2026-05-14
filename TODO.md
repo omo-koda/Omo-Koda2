@@ -41,7 +41,7 @@ Generated from the `Audit phase` deep dive plus local review of the current work
 - [x] Session persistence and encryption tests pass: 6 tests.
 - [x] Privacy enforcement tests pass: 3 tests.
 - [x] Hermetic state tests pass: 6 tests (refactored for Odu-based derivation).
-- [x] Total verified tests: 96.
+- [x] Total verified tests: 120.
 
 ## Phase 0 — Audit Cleanup and Spec Alignment
 
@@ -173,7 +173,7 @@ Goal: make private memory real, encrypted, and impossible to route externally by
 - [x] Add `argon2` with frozen parameters from `specs/memory.md`.
 - [x] Add `chacha20poly1305` for private memory encryption.
 - [x] Add versioned encryption metadata: salt, nonce, kdf version, cipher version. (Salt and nonce implemented)
-- [ ] Add key rotation hooks for ownership transfer, act-count threshold, and epoch timeout.
+- [x] Add key rotation hooks for ownership transfer, act-count threshold, and epoch timeout. (Implemented in session.rs)
 - [x] Add tests that plaintext private content does not appear in saved session files.
 - [x] Add tests that wrong key/passphrase fails closed.
 - [ ] Add zeroization for sensitive key material.
@@ -187,7 +187,7 @@ Goal: make private memory real, encrypted, and impossible to route externally by
 - [x] Add public memory routing for publishable outputs.
 - [x] Add private memory routing for sealed thoughts and plans.
 - [x] Implement RACK scoring: relevance × recency × importance × reputation impact. (Simplified RACK implemented)
-- [x] Add context compression levels adapted from Claude-2 patterns: (Implemented via RACK)
+- [x] Add context compression levels adapted from Claude-2 patterns: (Implemented via MemoryEngine)
 
 ### `/private` provider enforcement
 
@@ -217,7 +217,7 @@ Goal: make `act` useful while keeping capability unlocks, permissions, sandboxin
 
 - [ ] Add permission modes adapted from Swibe/Claw/Claude patterns: `Auto`, `Ask`, `Plan`, `Monitor`, `Quarantine`, `Simulate`, `Refuse`.
 - [ ] Implement deny-first evaluation.
-- [ ] Map reputation tier to default permission mode.
+- [x] Map reputation tier to default permission mode. (Implemented in reputation.rs)
 - [ ] Add per-tool permission requirements.
 - [ ] Add prompt/approval trait for human-in-the-loop actions.
 - [ ] Ensure permissions granted during one session do not silently persist across resumes.
@@ -236,9 +236,9 @@ Goal: make `act` useful while keeping capability unlocks, permissions, sandboxin
 
 ### Hooks and audit
 
-- [ ] Add pre-tool hooks with allow/warn/deny semantics.
-- [ ] Add post-tool hooks for receipt validation and reputation scoring.
-- [ ] Map hooks into the Justice module rather than exposing them as public language.
+- [x] Add pre-tool hooks with allow/warn/deny semantics. (Implemented in justice.rs)
+- [x] Add post-tool hooks for receipt validation and reputation scoring. (Implemented in justice.rs)
+- [x] Map hooks into the Justice module rather than exposing them as public language. (Implemented in justice.rs)
 - [ ] Add hook execution receipts that redact secrets.
 - [ ] Use Claude-mirror settings examples as inspiration for strict/lax/sandbox profiles.
 
@@ -410,7 +410,7 @@ Goal: make each architecture promise mechanically testable.
 - [ ] Add `tests/sandbox_tests.rs`.
 - [ ] Add `tests/provider_tests.rs`.
 - [ ] Add `tests/economics_tests.rs`.
-- [ ] Add `tests/integration_tests.rs` for birth → think → act → receipt → resume.
+- [x] Add `tests/integration_tests.rs` for birth → think → act → receipt → resume.
 - [ ] Add `tests/adversarial_tests.rs` for private leakage, path traversal, prompt injection, receipt tampering, tier bypass, and budget abuse.
 
 ### Cross-repo validation
