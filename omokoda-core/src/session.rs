@@ -29,6 +29,10 @@ pub struct Session {
     pub config: SessionConfig,
     pub public_messages: Vec<ConversationMessage>,
     pub encrypted_private: Option<EncryptedSession>,
+    pub warn_count: u32,
+    pub cooldown_active: bool,
+    pub think_history: Vec<String>,
+    pub swarm_agents: Vec<AgentId>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -170,6 +174,10 @@ impl Session {
             config: SessionConfig::default(),
             public_messages: Vec::new(),
             encrypted_private: None,
+            warn_count: 0,
+            cooldown_active: false,
+            think_history: Vec::new(),
+            swarm_agents: Vec::new(),
         }
     }
 
@@ -180,6 +188,30 @@ impl Session {
             "sandbox" => self.config.default_sandbox = value == "true",
             _ => {}
         }
+    }
+
+    pub fn warn_count_this_session(&self) -> u32 {
+        self.warn_count
+    }
+
+    pub fn increment_warn_count(&mut self) {
+        self.warn_count += 1;
+    }
+
+    pub fn is_in_cooldown(&self) -> bool {
+        self.cooldown_active
+    }
+
+    pub fn set_cooldown(&mut self, active: bool) {
+        self.cooldown_active = active;
+    }
+
+    pub fn recent_thinks(&self) -> &[String] {
+        &self.think_history
+    }
+
+    pub fn swarm_size(&self) -> usize {
+        self.swarm_agents.len()
     }
 
     pub fn add_message(&mut self, message: ConversationMessage, reputation: f64) {

@@ -21,7 +21,6 @@ use ed25519_dalek::SigningKey;
 use hkdf::Hkdf;
 use omokoda_hermetic::fractal::OPERATIONS;
 use omokoda_hermetic::HermeticState;
-use rand::Rng;
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use std::path::PathBuf;
@@ -93,7 +92,7 @@ impl AgentState {
         let k_root = SealVault::generate_internal_secret();
         
         // Identity derivation
-        let mut entropy = blake3::derive_key("omokoda:entropy_v1", &k_root);
+        let entropy = blake3::derive_key("omokoda:entropy_v1", &k_root);
 
         let mnemonic = Bipon39::entropy_to_mnemonic(&entropy);
         let indices = Bipon39::mnemonic_to_indices(&mnemonic).unwrap();

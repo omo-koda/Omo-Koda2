@@ -2,7 +2,6 @@
 mod steward_audit_tests {
     use omokoda_core::interpreter::Steward;
     use omokoda_core::parser::parse;
-    use omokoda_core::session::MessageRole;
 
     #[tokio::test]
     async fn birth_initializes_all_four_domains() {

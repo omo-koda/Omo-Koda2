@@ -1,3 +1,6 @@
+pub mod act_receipt;
+pub use act_receipt::ActReceipt;
+
 use crate::identity::AgentId;
 use ed25519_dalek::{Signature, Signer, Verifier, VerifyingKey};
 use serde::{Deserialize, Serialize};
