@@ -35,7 +35,7 @@ impl Receipt {
         let nonce: u64 = rand::thread_rng().gen();
 
         let payload = blake3_hash_hex(&[action.as_bytes(), params.as_bytes()]);
-        
+
         let receipt_id = Self::calculate_id(
             agent_id,
             action,
@@ -102,10 +102,10 @@ impl Receipt {
         // 2. Verify signature
         let verifying_key = VerifyingKey::from_bytes(public_key_bytes)
             .map_err(|e| format!("invalid public key: {}", e))?;
-        
-        let signature_bytes = hex::decode(&self.signature)
-            .map_err(|e| format!("invalid signature hex: {}", e))?;
-        
+
+        let signature_bytes =
+            hex::decode(&self.signature).map_err(|e| format!("invalid signature hex: {}", e))?;
+
         let signature = Signature::from_slice(&signature_bytes)
             .map_err(|e| format!("invalid signature bytes: {}", e))?;
 
@@ -140,7 +140,8 @@ impl ReceiptStore {
     }
 
     pub fn load_from_path(path: &Path) -> Result<Self, String> {
-        let content = std::fs::read_to_string(path).map_err(|e| format!("failed to read receipt file: {e}"))?;
+        let content = std::fs::read_to_string(path)
+            .map_err(|e| format!("failed to read receipt file: {e}"))?;
         serde_json::from_str(&content).map_err(|e| format!("failed to deserialize receipts: {e}"))
     }
 
@@ -198,7 +199,13 @@ impl ReceiptStore {
         let mut built_ids: Vec<String> = Vec::new();
         for id in &self.chain {
             if let Some(receipt) = self.receipts.get(id) {
-                if receipt.previous_hash != if built_ids.is_empty() { "0".repeat(64) } else { built_ids.last().unwrap().clone() } {
+                if receipt.previous_hash
+                    != if built_ids.is_empty() {
+                        "0".repeat(64)
+                    } else {
+                        built_ids.last().unwrap().clone()
+                    }
+                {
                     return false;
                 }
 
@@ -244,7 +251,10 @@ impl SimpleMerkleTree {
             let mut next_level = Vec::new();
             for i in (0..hashes.len()).step_by(2) {
                 if i + 1 < hashes.len() {
-                    next_level.push(blake3_hash_hex(&[hashes[i].as_bytes(), hashes[i + 1].as_bytes()]));
+                    next_level.push(blake3_hash_hex(&[
+                        hashes[i].as_bytes(),
+                        hashes[i + 1].as_bytes(),
+                    ]));
                 } else {
                     next_level.push(hashes[i].clone());
                 }

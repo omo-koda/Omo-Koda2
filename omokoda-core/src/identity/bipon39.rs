@@ -3,8 +3,8 @@ use pbkdf2::pbkdf2;
 use sha2::{Digest, Sha256, Sha512};
 
 pub const ROOTS: [&str; 16] = [
-    "esu", "sango", "ogun", "oya", "yemoja", "osun", "obatala", "orunmila", "egungun", "ori", "ile",
-    "omi", "ina", "afeefe", "igi", "irawo",
+    "esu", "sango", "ogun", "oya", "yemoja", "osun", "obatala", "orunmila", "egungun", "ori",
+    "ile", "omi", "ina", "afeefe", "igi", "irawo",
 ];
 
 pub const AFFIXES: [&str; 16] = [
@@ -27,7 +27,8 @@ impl Bipon39 {
 
     pub fn wordlist_merkle_root() -> String {
         let words = Self::wordlist();
-        let mut hashes: Vec<blake3::Hash> = words.iter().map(|w| blake3::hash(w.as_bytes())).collect();
+        let mut hashes: Vec<blake3::Hash> =
+            words.iter().map(|w| blake3::hash(w.as_bytes())).collect();
 
         while hashes.len() > 1 {
             let mut next_level = Vec::new();
@@ -62,7 +63,7 @@ impl Bipon39 {
         // Actually BIP-39 uses ENT / 32 bits for checksum.
         // For 256 bits, it's 8 bits (1 byte).
         let checksum_byte = checksum[0];
-        
+
         let mut combined = Vec::with_capacity(entropy.len() + 1);
         combined.extend_from_slice(entropy);
         combined.push(checksum_byte);
@@ -92,12 +93,8 @@ impl Bipon39 {
     pub fn mnemonic_to_seed(mnemonic: &str, passphrase: &str) -> [u8; 64] {
         let salt = format!("BIPỌ̀N39 seedỌ̀RÍ:{}", passphrase);
         let mut seed = [0u8; 64];
-        pbkdf2::<Hmac<Sha512>>(
-            mnemonic.as_bytes(),
-            salt.as_bytes(),
-            2048,
-            &mut seed,
-        ).expect("PBKDF2 failed");
+        pbkdf2::<Hmac<Sha512>>(mnemonic.as_bytes(), salt.as_bytes(), 2048, &mut seed)
+            .expect("PBKDF2 failed");
         seed
     }
 

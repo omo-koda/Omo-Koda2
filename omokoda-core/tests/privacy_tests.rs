@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod privacy_tests {
-    use omokoda_core::providers::{MockProvider, ProviderClass, ProviderMetadata, ProviderRegistry};
+    use omokoda_core::providers::{
+        MockProvider, ProviderClass, ProviderMetadata, ProviderRegistry,
+    };
 
     #[tokio::test]
     async fn allows_local_in_private() {
@@ -39,8 +41,14 @@ mod privacy_tests {
         struct FailingLocal(ProviderMetadata);
         #[async_trait::async_trait]
         impl omokoda_core::providers::LlmProvider for FailingLocal {
-            fn metadata(&self) -> &ProviderMetadata { &self.0 }
-            async fn generate(&self, _: &str, _: &[omokoda_core::session::ConversationMessage]) -> Result<String, String> {
+            fn metadata(&self) -> &ProviderMetadata {
+                &self.0
+            }
+            async fn generate(
+                &self,
+                _: &str,
+                _: &[omokoda_core::session::ConversationMessage],
+            ) -> Result<String, String> {
                 Err("local failed".to_string())
             }
         }
@@ -48,13 +56,21 @@ mod privacy_tests {
         struct BrowserLocal(ProviderMetadata);
         #[async_trait::async_trait]
         impl omokoda_core::providers::LlmProvider for BrowserLocal {
-            fn metadata(&self) -> &ProviderMetadata { &self.0 }
-            async fn generate(&self, _: &str, _: &[omokoda_core::session::ConversationMessage]) -> Result<String, String> {
+            fn metadata(&self) -> &ProviderMetadata {
+                &self.0
+            }
+            async fn generate(
+                &self,
+                _: &str,
+                _: &[omokoda_core::session::ConversationMessage],
+            ) -> Result<String, String> {
                 Ok("browser local".to_string())
             }
         }
 
-        let mut registry = ProviderRegistry { providers: Vec::new() };
+        let mut registry = ProviderRegistry {
+            providers: Vec::new(),
+        };
         registry.register(Box::new(FailingLocal(ProviderMetadata {
             name: "LocalFail".to_string(),
             class: ProviderClass::Local,
@@ -75,8 +91,14 @@ mod privacy_tests {
         struct ExternalProv(ProviderMetadata);
         #[async_trait::async_trait]
         impl omokoda_core::providers::LlmProvider for ExternalProv {
-            fn metadata(&self) -> &ProviderMetadata { &self.0 }
-            async fn generate(&self, _: &str, _: &[omokoda_core::session::ConversationMessage]) -> Result<String, String> {
+            fn metadata(&self) -> &ProviderMetadata {
+                &self.0
+            }
+            async fn generate(
+                &self,
+                _: &str,
+                _: &[omokoda_core::session::ConversationMessage],
+            ) -> Result<String, String> {
                 Ok("external".to_string())
             }
         }
@@ -98,8 +120,14 @@ mod privacy_tests {
         struct ExternalProv(ProviderMetadata);
         #[async_trait::async_trait]
         impl omokoda_core::providers::LlmProvider for ExternalProv {
-            fn metadata(&self) -> &ProviderMetadata { &self.0 }
-            async fn generate(&self, _: &str, _: &[omokoda_core::session::ConversationMessage]) -> Result<String, String> {
+            fn metadata(&self) -> &ProviderMetadata {
+                &self.0
+            }
+            async fn generate(
+                &self,
+                _: &str,
+                _: &[omokoda_core::session::ConversationMessage],
+            ) -> Result<String, String> {
                 Ok("external".to_string())
             }
         }
@@ -121,21 +149,35 @@ mod privacy_tests {
         struct FailProv(ProviderMetadata);
         #[async_trait::async_trait]
         impl omokoda_core::providers::LlmProvider for FailProv {
-            fn metadata(&self) -> &ProviderMetadata { &self.0 }
-            async fn generate(&self, _: &str, _: &[omokoda_core::session::ConversationMessage]) -> Result<String, String> {
+            fn metadata(&self) -> &ProviderMetadata {
+                &self.0
+            }
+            async fn generate(
+                &self,
+                _: &str,
+                _: &[omokoda_core::session::ConversationMessage],
+            ) -> Result<String, String> {
                 Err("local fail".to_string())
             }
         }
         struct ExternalProv(ProviderMetadata);
         #[async_trait::async_trait]
         impl omokoda_core::providers::LlmProvider for ExternalProv {
-            fn metadata(&self) -> &ProviderMetadata { &self.0 }
-            async fn generate(&self, _: &str, _: &[omokoda_core::session::ConversationMessage]) -> Result<String, String> {
+            fn metadata(&self) -> &ProviderMetadata {
+                &self.0
+            }
+            async fn generate(
+                &self,
+                _: &str,
+                _: &[omokoda_core::session::ConversationMessage],
+            ) -> Result<String, String> {
                 Ok("external".to_string())
             }
         }
 
-        let mut registry = ProviderRegistry { providers: Vec::new() };
+        let mut registry = ProviderRegistry {
+            providers: Vec::new(),
+        };
         registry.register(Box::new(FailProv(ProviderMetadata {
             name: "FailLocal".to_string(),
             class: ProviderClass::Local,

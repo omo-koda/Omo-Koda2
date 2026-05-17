@@ -36,7 +36,13 @@ pub const MASKS: &[&str] = &[
 ];
 
 pub const MOODS: &[&str] = &[
-    "newborn", "curious", "focused", "playful", "serene", "wise", "sovereign",
+    "newborn",
+    "curious",
+    "focused",
+    "playful",
+    "serene",
+    "wise",
+    "sovereign",
 ];
 
 use serde::{Deserialize, Serialize};
@@ -55,10 +61,11 @@ impl PetIdentity {
 
         // Mood is influenced by Hermetic principles: Mentalism, Polarity, Vibration
         let h_score = (hermetic.mentalism() + hermetic.polarity() + hermetic.vibration()) / 3.0;
-        
+
         // Combine Hermetic score with tier to select mood
         // This ensures mood reflects both the "soul" (Hermetic) and "growth" (Tier)
-        let mood_index = ((h_score * (MOODS.len() - 1) as f64) as usize + tier as usize) % MOODS.len();
+        let mood_index =
+            ((h_score * (MOODS.len() - 1) as f64) as usize + tier as usize) % MOODS.len();
         let mood = MOODS[mood_index].to_string();
 
         Self { mask, mood }
@@ -68,4 +75,3 @@ impl PetIdentity {
         &self.mask
     }
 }
-

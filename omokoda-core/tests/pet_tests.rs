@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod pet_tests {
-    use omokoda_core::identity::pet::{PetIdentity, MASKS, MOODS};
     use omokoda_core::identity::odu::OduIdentity;
+    use omokoda_core::identity::pet::{PetIdentity, MASKS, MOODS};
     use omokoda_hermetic::HermeticState;
 
     #[test]
@@ -15,7 +15,7 @@ mod pet_tests {
             primary_index: 0,
             mnemonic: "test".to_string(),
         };
-        
+
         let h1 = HermeticState::from_seed("agent1", 123456);
         let h2 = HermeticState::from_seed("agent2", 654321);
 

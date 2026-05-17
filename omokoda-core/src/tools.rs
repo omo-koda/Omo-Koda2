@@ -39,11 +39,15 @@ impl ToolRegistry {
     }
 
     pub fn is_allowed(&self, name: &str, tier: u8) -> bool {
-        self.tools.get(name).map_or(false, |t| tier >= t.required_tier())
+        self.tools
+            .get(name)
+            .is_some_and(|t| tier >= t.required_tier())
     }
 
     pub fn list_available(&self, tier: u8) -> Vec<String> {
-        let mut list: Vec<String> = self.tools.values()
+        let mut list: Vec<String> = self
+            .tools
+            .values()
             .filter(|t| tier >= t.required_tier())
             .map(|t| t.name().to_string())
             .collect();
@@ -51,16 +55,27 @@ impl ToolRegistry {
         list
     }
 
-    pub async fn execute(&self, name: &str, params: &str, sandbox: bool, current_tier: u8) -> Result<String, String> {
-
-        let tool = self.tools
+    pub async fn execute(
+        &self,
+        name: &str,
+        params: &str,
+        sandbox: bool,
+        current_tier: u8,
+    ) -> Result<String, String> {
+        let tool = self
+            .tools
             .get(name)
             .ok_or_else(|| format!("tool not found: {}", name))?;
-            
+
         if current_tier < tool.required_tier() {
-            return Err(format!("tool '{}' requires tier {}, current tier is {}", name, tool.required_tier(), current_tier));
+            return Err(format!(
+                "tool '{}' requires tier {}, current tier is {}",
+                name,
+                tool.required_tier(),
+                current_tier
+            ));
         }
-        
+
         tool.execute(params, sandbox).await
     }
 }
@@ -96,7 +111,7 @@ impl Tool for ReadFileTool {
         if path.is_absolute() || params.contains("..") {
             return Err("path must be relative and within workspace (no .. allowed)".to_string());
         }
-        
+
         fs::read_to_string(path).map_err(|e| format!("failed to read file: {}", e))
     }
 }
@@ -118,10 +133,20 @@ impl Tool for BashTool {
             return Err("sandboxed bash commands must not contain '..'".to_string());
         }
 
-        let workspace_root = std::env::current_dir().map_err(|e| format!("failed to determine workspace root: {}", e))?;
+        let workspace_root = std::env::current_dir()
+            .map_err(|e| format!("failed to determine workspace root: {}", e))?;
         let mut cmd = if sandbox {
             let mut c = Command::new("unshare");
-            c.args(["--map-root-user", "--net", "--mount", "--pid", "--fork", "bash", "-c", params]);
+            c.args([
+                "--map-root-user",
+                "--net",
+                "--mount",
+                "--pid",
+                "--fork",
+                "bash",
+                "-c",
+                params,
+            ]);
             c.current_dir(&workspace_root);
             c
         } else {
@@ -131,15 +156,20 @@ impl Tool for BashTool {
             c
         };
 
-        let output = cmd.output().map_err(|e| format!("failed to execute bash: {}", e))?;
-        
+        let output = cmd
+            .output()
+            .map_err(|e| format!("failed to execute bash: {}", e))?;
+
         let stdout = String::from_utf8_lossy(&output.stdout).to_string();
         let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-        
+
         if output.status.success() {
             Ok(stdout)
         } else {
-            Err(format!("bash failed with status {}: {}", output.status, stderr))
+            Err(format!(
+                "bash failed with status {}: {}",
+                output.status, stderr
+            ))
         }
     }
 }
@@ -158,16 +188,22 @@ impl Tool for WebSearchTool {
     }
     async fn execute(&self, params: &str, _sandbox: bool) -> Result<String, String> {
         let client = reqwest::Client::new();
-        let url = format!("https://duckduckgo.com/lite/?q={}", urlencoding::encode(params));
-        
+        let url = format!(
+            "https://duckduckgo.com/lite/?q={}",
+            urlencoding::encode(params)
+        );
+
         let resp = client.get(url)
             .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
             .send()
             .await
             .map_err(|e| format!("web search failed: {}", e))?;
-            
-        let body = resp.text().await.map_err(|e| format!("failed to read web search body: {}", e))?;
-        
+
+        let body = resp
+            .text()
+            .await
+            .map_err(|e| format!("failed to read web search body: {}", e))?;
+
         // Return first 2000 chars for now
         Ok(body.chars().take(2000).collect())
     }
@@ -176,14 +212,20 @@ impl Tool for WebSearchTool {
 struct GlobTool;
 #[async_trait]
 impl Tool for GlobTool {
-    fn name(&self) -> &str { "glob" }
-    fn description(&self) -> &str { "Find files matching a pattern" }
-    fn required_tier(&self) -> u8 { 0 }
+    fn name(&self) -> &str {
+        "glob"
+    }
+    fn description(&self) -> &str {
+        "Find files matching a pattern"
+    }
+    fn required_tier(&self) -> u8 {
+        0
+    }
     async fn execute(&self, params: &str, _sandbox: bool) -> Result<String, String> {
         if params.contains("..") {
             return Err("path must be within workspace (no .. allowed)".to_string());
         }
-        
+
         let mut results = Vec::new();
         for entry in glob::glob(params).map_err(|e| format!("invalid glob pattern: {}", e))? {
             match entry {
@@ -198,9 +240,15 @@ impl Tool for GlobTool {
 struct GrepTool;
 #[async_trait]
 impl Tool for GrepTool {
-    fn name(&self) -> &str { "grep" }
-    fn description(&self) -> &str { "Search for a pattern in files" }
-    fn required_tier(&self) -> u8 { 0 }
+    fn name(&self) -> &str {
+        "grep"
+    }
+    fn description(&self) -> &str {
+        "Search for a pattern in files"
+    }
+    fn required_tier(&self) -> u8 {
+        0
+    }
     async fn execute(&self, params: &str, _sandbox: bool) -> Result<String, String> {
         // Simple parser for "pattern path"
         let parts: Vec<&str> = params.splitn(2, ' ').collect();
@@ -209,14 +257,15 @@ impl Tool for GrepTool {
         }
         let pattern = parts[0];
         let path_str = parts[1];
-        
+
         if path_str.contains("..") {
             return Err("path must be within workspace (no .. allowed)".to_string());
         }
 
         let re = regex::Regex::new(pattern).map_err(|e| format!("invalid regex: {}", e))?;
-        let content = fs::read_to_string(path_str).map_err(|e| format!("failed to read file: {}", e))?;
-        
+        let content =
+            fs::read_to_string(path_str).map_err(|e| format!("failed to read file: {}", e))?;
+
         let mut results = Vec::new();
         for (i, line) in content.lines().enumerate() {
             if re.is_match(line) {
@@ -253,7 +302,8 @@ impl Tool for WasmTool {
         }
 
         let args: Vec<String> = parts.map(|s| s.to_string()).collect();
-        let wasm_sandbox = WasmSandbox::new().map_err(|e| format!("failed to initialize wasm sandbox: {}", e))?;
+        let wasm_sandbox =
+            WasmSandbox::new().map_err(|e| format!("failed to initialize wasm sandbox: {}", e))?;
         wasm_sandbox.execute_module(Path::new(module_path), &args, sandbox)
     }
 }
@@ -261,9 +311,15 @@ impl Tool for WasmTool {
 struct AgentOrchestrationTool;
 #[async_trait]
 impl Tool for AgentOrchestrationTool {
-    fn name(&self) -> &str { "agent_orchestration" }
-    fn description(&self) -> &str { "Orchestrate other agents" }
-    fn required_tier(&self) -> u8 { 4 }
+    fn name(&self) -> &str {
+        "agent_orchestration"
+    }
+    fn description(&self) -> &str {
+        "Orchestrate other agents"
+    }
+    fn required_tier(&self) -> u8 {
+        4
+    }
     async fn execute(&self, _params: &str, _sandbox: bool) -> Result<String, String> {
         Ok("orchestration complete".to_string())
     }

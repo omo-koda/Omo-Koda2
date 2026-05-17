@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
-use std::process::Command;
 use std::io::Write;
+use std::process::Command;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ActQuality {
@@ -50,7 +50,7 @@ pub struct ShellHook {
 
 impl Hook for ShellHook {
     fn run(&self, ctx: &HookContext) -> HookDecision {
-        let mut child = Command::new("sh")
+        let child = Command::new("sh")
             .arg("-c")
             .arg(&self.command)
             .env("OMOKODA_TOOL", &ctx.tool_name)
@@ -93,7 +93,10 @@ pub struct ReputationGate {
 impl Hook for ReputationGate {
     fn run(&self, ctx: &HookContext) -> HookDecision {
         if ctx.reputation < self.min_reputation {
-            HookDecision::Deny(format!("Reputation too low. Required: {}, Current: {}", self.min_reputation, ctx.reputation))
+            HookDecision::Deny(format!(
+                "Reputation too low. Required: {}, Current: {}",
+                self.min_reputation, ctx.reputation
+            ))
         } else {
             HookDecision::Allow
         }
@@ -173,8 +176,6 @@ impl JusticeEngine {
             ActQuality::HighValue
         } else if len > 100 {
             ActQuality::Useful
-        } else if len > 10 {
-            ActQuality::Basic
         } else {
             ActQuality::Basic
         }
@@ -188,9 +189,7 @@ impl JusticeEngine {
         output: &str,
         is_success: bool,
     ) -> (f64, ActQuality) {
-        use crate::reputation::{
-            reputation_gain, ACT_TIER_0, ACT_TIER_1, ACT_TIER_2, ACT_TIER_4,
-        };
+        use crate::reputation::{reputation_gain, ACT_TIER_0, ACT_TIER_1, ACT_TIER_2, ACT_TIER_4};
         let quality = self.evaluate_act(output, !is_success);
 
         let base = match quality {

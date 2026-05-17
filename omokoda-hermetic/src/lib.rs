@@ -47,13 +47,27 @@ impl HermeticState {
         Self::from_odu_seed(&seed)
     }
 
-    pub fn mentalism(&self) -> f64 { self.mentalism }
-    pub fn correspondence(&self) -> f64 { self.correspondence }
-    pub fn vibration(&self) -> f64 { self.vibration }
-    pub fn polarity(&self) -> f64 { self.polarity }
-    pub fn rhythm(&self) -> f64 { self.rhythm }
-    pub fn cause_effect(&self) -> f64 { self.cause_effect }
-    pub fn gender(&self) -> f64 { self.gender }
+    pub fn mentalism(&self) -> f64 {
+        self.mentalism
+    }
+    pub fn correspondence(&self) -> f64 {
+        self.correspondence
+    }
+    pub fn vibration(&self) -> f64 {
+        self.vibration
+    }
+    pub fn polarity(&self) -> f64 {
+        self.polarity
+    }
+    pub fn rhythm(&self) -> f64 {
+        self.rhythm
+    }
+    pub fn cause_effect(&self) -> f64 {
+        self.cause_effect
+    }
+    pub fn gender(&self) -> f64 {
+        self.gender
+    }
 
     // Logic aliases
     pub fn think_abstraction_depth(&self) -> f64 {

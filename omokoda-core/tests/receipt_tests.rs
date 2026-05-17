@@ -18,8 +18,15 @@ mod receipt_tests {
     fn new_merkle_receipt_creation() {
         let key = generate_key();
         let agent_id = AgentId::from_str("agent-001");
-        
-        let r = Receipt::new_merkle(&agent_id, "web_search", "bitcoin origin", "prev-hash", "merkle-root", &key);
+
+        let r = Receipt::new_merkle(
+            &agent_id,
+            "web_search",
+            "bitcoin origin",
+            "prev-hash",
+            "merkle-root",
+            &key,
+        );
         assert!(!r.agent_id.as_str().is_empty());
         assert_eq!(r.action, "web_search");
         assert!(!r.receipt_id.is_empty());
@@ -29,7 +36,7 @@ mod receipt_tests {
     #[test]
     fn receipt_determinism() {
         let agent_id = AgentId::from_str("agent-001");
-        
+
         // Nonce and timestamp make it non-deterministic by default in new_merkle,
         // but calculate_id itself is deterministic.
         let id1 = Receipt::calculate_id(&agent_id, "act", "pay", "prev", "root", 100, 123);
@@ -45,7 +52,7 @@ mod receipt_tests {
 
         let a = Receipt::new_merkle(&agent_id, "web_search", "query", "hash", "root", &key);
         let b = Receipt::new_merkle(&agent_id, "web_search", "query", "hash", "root", &key);
-        
+
         assert!(a.verify(&public_key).is_ok());
         assert!(b.verify(&public_key).is_ok());
         assert_ne!(a.receipt_id, b.receipt_id); // Different nonces
@@ -59,7 +66,7 @@ mod receipt_tests {
 
         let r_orig = Receipt::new_merkle(&agent_id, "act", "p", "prev", "root", &key);
         let mut r = r_orig.clone();
-        
+
         assert!(r.verify(&public_key).is_ok());
 
         // Tamper with action
@@ -86,12 +93,26 @@ mod receipt_tests {
         assert_eq!(store.count(), 0);
         assert_eq!(store.last_hash(), "0".repeat(64));
 
-        let r1 = Receipt::new_merkle(&agent_id, "act1", "p1", store.last_hash(), &store.current_merkle_root(), &key);
+        let r1 = Receipt::new_merkle(
+            &agent_id,
+            "act1",
+            "p1",
+            store.last_hash(),
+            &store.current_merkle_root(),
+            &key,
+        );
         store.record(r1.clone());
         assert_eq!(store.count(), 1);
         assert_eq!(store.last_hash(), r1.receipt_id);
 
-        let r2 = Receipt::new_merkle(&agent_id, "act2", "p2", store.last_hash(), &store.current_merkle_root(), &key);
+        let r2 = Receipt::new_merkle(
+            &agent_id,
+            "act2",
+            "p2",
+            store.last_hash(),
+            &store.current_merkle_root(),
+            &key,
+        );
         store.record(r2.clone());
         assert_eq!(store.count(), 2);
         assert_eq!(store.last_hash(), r2.receipt_id);
@@ -128,9 +149,23 @@ mod receipt_tests {
         let agent_id = AgentId::from_str("agent-001");
         let path = std::path::Path::new("test_receipts.json");
 
-        let r1 = Receipt::new_merkle(&agent_id, "act1", "p1", store.last_hash(), &store.current_merkle_root(), &key);
+        let r1 = Receipt::new_merkle(
+            &agent_id,
+            "act1",
+            "p1",
+            store.last_hash(),
+            &store.current_merkle_root(),
+            &key,
+        );
         store.record(r1.clone());
-        let r2 = Receipt::new_merkle(&agent_id, "act2", "p2", store.last_hash(), &store.current_merkle_root(), &key);
+        let r2 = Receipt::new_merkle(
+            &agent_id,
+            "act2",
+            "p2",
+            store.last_hash(),
+            &store.current_merkle_root(),
+            &key,
+        );
         store.record(r2.clone());
 
         assert!(store.verify_chain());

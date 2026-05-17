@@ -35,8 +35,11 @@ mod interpreter_tests {
     async fn think_produces_receipt() {
         let mut steward = Steward::new();
         steward.set_mock_provider("mock thought".to_string());
-        steward.dispatch(parse(r#"birth "luna""#).unwrap()[0].clone()).await.unwrap();
-        
+        steward
+            .dispatch(parse(r#"birth "luna""#).unwrap()[0].clone())
+            .await
+            .unwrap();
+
         let stmts = parse(r#"think "hello world""#).unwrap();
         let result = steward.dispatch(stmts[0].clone()).await.unwrap();
         assert!(result.receipt.is_some());
@@ -50,7 +53,10 @@ mod interpreter_tests {
 
         let mut steward = Steward::new();
         steward.set_mock_provider("mock thought".to_string());
-        steward.dispatch(parse(r#"birth "luna""#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"birth "luna""#).unwrap()[0].clone())
+            .await
+            .unwrap();
 
         let (tx, mut rx) = mpsc::channel(10);
         let stmt = parse(r#"think "hello world""#).unwrap()[0].clone();
@@ -63,9 +69,15 @@ mod interpreter_tests {
 
         assert!(result.receipt.is_some());
         assert!(events.iter().any(|e| matches!(e, TurnEvent::Started)));
-        assert!(events.iter().any(|e| matches!(e, TurnEvent::IntentCompiled(_))));
-        assert!(events.iter().any(|e| matches!(e, TurnEvent::PlanGenerated(_))));
-        assert!(events.iter().any(|e| matches!(e, TurnEvent::ReceiptGenerated(_))));
+        assert!(events
+            .iter()
+            .any(|e| matches!(e, TurnEvent::IntentCompiled(_))));
+        assert!(events
+            .iter()
+            .any(|e| matches!(e, TurnEvent::PlanGenerated(_))));
+        assert!(events
+            .iter()
+            .any(|e| matches!(e, TurnEvent::ReceiptGenerated(_))));
         assert!(events.iter().any(|e| matches!(e, TurnEvent::Finished)));
     }
 
@@ -74,7 +86,10 @@ mod interpreter_tests {
         use tokio::sync::mpsc;
 
         let mut steward = Steward::new();
-        steward.dispatch(parse(r#"birth "luna""#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"birth "luna""#).unwrap()[0].clone())
+            .await
+            .unwrap();
         let test_file = "test_act_event.txt";
         std::fs::write(test_file, "content").unwrap();
 
@@ -98,7 +113,10 @@ mod interpreter_tests {
     async fn think_private_sets_private_mode() {
         let mut steward = Steward::new();
         steward.set_mock_provider("mock thought".to_string());
-        steward.dispatch(parse(r#"birth "luna""#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"birth "luna""#).unwrap()[0].clone())
+            .await
+            .unwrap();
 
         let stmts = parse(r#"think "secret""#).unwrap();
         let result = steward.dispatch(stmts[0].clone()).await.unwrap();
@@ -109,7 +127,10 @@ mod interpreter_tests {
     async fn think_publish_sets_public_mode() {
         let mut steward = Steward::new();
         steward.set_mock_provider("mock thought".to_string());
-        steward.dispatch(parse(r#"birth "luna""#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"birth "luna""#).unwrap()[0].clone())
+            .await
+            .unwrap();
 
         let stmts = parse(r#"think "share this" /publish"#).unwrap();
         let result = steward.dispatch(stmts[0].clone()).await.unwrap();
@@ -122,8 +143,14 @@ mod interpreter_tests {
 
         let mut steward = Steward::new();
         steward.register_provider(Box::new(MockProvider::new("mock thought".to_string())));
-        steward.dispatch(parse(r#"birth "luna""#).unwrap()[0].clone()).await.unwrap();
-        steward.dispatch(parse(r#"/configure provider:Mock"#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"birth "luna""#).unwrap()[0].clone())
+            .await
+            .unwrap();
+        steward
+            .dispatch(parse(r#"/configure provider:Mock"#).unwrap()[0].clone())
+            .await
+            .unwrap();
 
         let stmts = parse(r#"think "hello""#).unwrap();
         let result = steward.dispatch(stmts[0].clone()).await.unwrap();
@@ -133,9 +160,14 @@ mod interpreter_tests {
     #[tokio::test]
     async fn configure_rejects_unknown_provider() {
         let mut steward = Steward::new();
-        steward.dispatch(parse(r#"birth "luna""#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"birth "luna""#).unwrap()[0].clone())
+            .await
+            .unwrap();
 
-        let result = steward.dispatch(parse(r#"/configure provider:unknown"#).unwrap()[0].clone()).await;
+        let result = steward
+            .dispatch(parse(r#"/configure provider:unknown"#).unwrap()[0].clone())
+            .await;
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("unknown provider"));
     }
@@ -143,14 +175,17 @@ mod interpreter_tests {
     #[tokio::test]
     async fn act_produces_receipt() {
         let mut steward = Steward::new();
-        steward.dispatch(parse(r#"birth "luna""#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"birth "luna""#).unwrap()[0].clone())
+            .await
+            .unwrap();
 
         let test_file = "test_act_receipt.txt";
         std::fs::write(test_file, "content").unwrap();
 
         let stmts = parse(r#"act "read_file" "test_act_receipt.txt""#).unwrap();
         let result = steward.dispatch(stmts[0].clone()).await.unwrap();
-        
+
         std::fs::remove_file(test_file).unwrap();
 
         assert!(result.receipt.is_some());
@@ -161,7 +196,10 @@ mod interpreter_tests {
     #[tokio::test]
     async fn act_increases_reputation_via_dynamic_formula() {
         let mut steward = Steward::new();
-        steward.dispatch(parse(r#"birth "luna""#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"birth "luna""#).unwrap()[0].clone())
+            .await
+            .unwrap();
 
         let test_file = "test_act_rep.txt";
         std::fs::write(test_file, "content").unwrap();
@@ -170,7 +208,7 @@ mod interpreter_tests {
         let stmts = parse(r#"act "read_file" "test_act_rep.txt""#).unwrap();
         steward.dispatch(stmts[0].clone()).await.unwrap();
         let after = steward.reputation();
-        
+
         std::fs::remove_file(test_file).unwrap();
 
         assert!(after > before);
@@ -181,7 +219,10 @@ mod interpreter_tests {
     #[tokio::test]
     async fn reputation_gain_decreases_as_rep_grows() {
         let mut steward = Steward::new();
-        steward.dispatch(parse(r#"birth "luna""#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"birth "luna""#).unwrap()[0].clone())
+            .await
+            .unwrap();
 
         let test_file = "test_act_rep_grows.txt";
         std::fs::write(test_file, "content").unwrap();
@@ -190,13 +231,13 @@ mod interpreter_tests {
         let stmts = parse(r#"act "read_file" "test_act_rep_grows.txt""#).unwrap();
         steward.dispatch(stmts[0].clone()).await.unwrap();
         let gain_low = steward.reputation();
-        
+
         steward.set_reputation_for_test(50.0);
         let before_high = steward.reputation();
         let stmts2 = parse(r#"act "read_file" "test_act_rep_grows.txt""#).unwrap();
         steward.dispatch(stmts2[0].clone()).await.unwrap();
         let gain_high = steward.reputation() - before_high;
-        
+
         std::fs::remove_file(test_file).unwrap();
 
         assert!(gain_low > gain_high);
@@ -205,7 +246,10 @@ mod interpreter_tests {
     #[tokio::test]
     async fn act_rejected_for_tool_above_current_tier() {
         let mut steward = Steward::new();
-        steward.dispatch(parse(r#"birth "luna""#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"birth "luna""#).unwrap()[0].clone())
+            .await
+            .unwrap();
 
         let stmts = parse(r#"act "agent_orchestration" "task""#).unwrap();
         let result = steward.dispatch(stmts[0].clone()).await;
@@ -215,7 +259,10 @@ mod interpreter_tests {
     #[tokio::test]
     async fn reputation_decay_on_inactivity() {
         let mut steward = Steward::new();
-        steward.dispatch(parse(r#"birth "luna""#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"birth "luna""#).unwrap()[0].clone())
+            .await
+            .unwrap();
 
         steward.set_reputation_for_test(10.0);
         steward.apply_daily_decay(1); // 1 day inactive
@@ -227,7 +274,10 @@ mod interpreter_tests {
     #[tokio::test]
     async fn reputation_cannot_go_below_zero() {
         let mut steward = Steward::new();
-        steward.dispatch(parse(r#"birth "luna""#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"birth "luna""#).unwrap()[0].clone())
+            .await
+            .unwrap();
 
         steward.set_reputation_for_test(0.001);
         steward.apply_daily_decay(100); // massive inactivity
@@ -238,7 +288,7 @@ mod interpreter_tests {
     async fn multi_statement_executes_in_order() {
         let mut steward = Steward::new();
         steward.set_mock_provider("done".to_string());
-        
+
         let test_file = "test_multi.txt";
         std::fs::write(test_file, "content").unwrap();
 
@@ -250,7 +300,7 @@ act "read_file" "test_multi.txt""#;
         for stmt in stmts {
             steward.dispatch(stmt).await.unwrap();
         }
-        
+
         std::fs::remove_file(test_file).unwrap();
         assert!(steward.reputation() > 0.0);
     }
@@ -258,17 +308,26 @@ act "read_file" "test_multi.txt""#;
     #[tokio::test]
     async fn steward_state_persists_between_dispatches() {
         let mut steward = Steward::new();
-        steward.dispatch(parse(r#"birth "luna""#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"birth "luna""#).unwrap()[0].clone())
+            .await
+            .unwrap();
 
         let test_file = "test_persist.txt";
         std::fs::write(test_file, "content").unwrap();
 
-        steward.dispatch(parse(r#"act "read_file" "test_persist.txt""#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"act "read_file" "test_persist.txt""#).unwrap()[0].clone())
+            .await
+            .unwrap();
         let rep_after_first = steward.reputation();
-        
-        steward.dispatch(parse(r#"act "read_file" "test_persist.txt""#).unwrap()[0].clone()).await.unwrap();
+
+        steward
+            .dispatch(parse(r#"act "read_file" "test_persist.txt""#).unwrap()[0].clone())
+            .await
+            .unwrap();
         let rep_after_second = steward.reputation();
-        
+
         std::fs::remove_file(test_file).unwrap();
         assert!(rep_after_second > rep_after_first);
     }
@@ -294,14 +353,17 @@ act "read_file" "test_multi.txt""#;
     #[tokio::test]
     async fn act_returns_tool_output() {
         let mut steward = Steward::new();
-        steward.dispatch(parse(r#"birth "luna""#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"birth "luna""#).unwrap()[0].clone())
+            .await
+            .unwrap();
 
         let test_file = "test_act_read.txt";
         std::fs::write(test_file, "real file content").unwrap();
 
         let stmts = parse(r#"act "read_file" "test_act_read.txt""#).unwrap();
         let result = steward.dispatch(stmts[0].clone()).await.unwrap();
-        
+
         std::fs::remove_file(test_file).unwrap();
 
         assert!(result.tool_output.is_some());
@@ -346,16 +408,33 @@ act "read_file" "test_multi.txt""#;
     async fn slash_seal_and_unlock_preserves_private_memory() {
         let mut steward = Steward::new();
         steward.set_mock_provider("mock thought".to_string());
-        steward.dispatch(parse(r#"birth "luna""#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"birth "luna""#).unwrap()[0].clone())
+            .await
+            .unwrap();
 
-        steward.dispatch(parse(r#"think "secret thought""#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"think "secret thought""#).unwrap()[0].clone())
+            .await
+            .unwrap();
         assert!(steward.agent_state().unwrap().private_data().is_some());
 
-        steward.dispatch(parse(r#"/seal mypass"#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"/seal mypass"#).unwrap()[0].clone())
+            .await
+            .unwrap();
         assert!(steward.agent_state().unwrap().private_data().is_none());
-        assert!(steward.agent_state().unwrap().session().encrypted_private.is_some());
+        assert!(steward
+            .agent_state()
+            .unwrap()
+            .session()
+            .encrypted_private
+            .is_some());
 
-        steward.dispatch(parse(r#"/unlock mypass"#).unwrap()[0].clone()).await.unwrap();
+        steward
+            .dispatch(parse(r#"/unlock mypass"#).unwrap()[0].clone())
+            .await
+            .unwrap();
         assert!(steward.agent_state().unwrap().private_data().is_some());
     }
 }

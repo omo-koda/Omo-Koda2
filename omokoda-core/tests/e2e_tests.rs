@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod e2e_tests {
     use omokoda_core::{parse, Steward};
-    use wat::parse_str;
     use std::fs;
+    use wat::parse_str;
 
     #[tokio::test]
     async fn e2e_birth_think_and_wasm_act_flow() {
@@ -17,10 +17,13 @@ mod e2e_tests {
         let think_result = steward.dispatch(think_stmts[0].clone()).await.unwrap();
         assert_eq!(think_result.tool_output.unwrap(), "e2e thought");
 
-        let wasm_bytes = parse_str(r#"(module
+        let wasm_bytes = parse_str(
+            r#"(module
   (func $_start)
   (start $_start)
-)"#).unwrap();
+)"#,
+        )
+        .unwrap();
 
         fs::write("test_e2e.wasm", &wasm_bytes).unwrap();
 

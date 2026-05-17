@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod parser_tests {
-    use omokoda_core::parser::{parse, Statement, ParseErrorCode};
+    use omokoda_core::parser::{parse, ParseErrorCode, Statement};
 
     // ── VALID INPUT ──────────────────────────────────────────────
 
@@ -51,12 +51,16 @@ mod parser_tests {
 
     #[test]
     fn think_accepts_natural_modifiers_without_new_primitives() {
-        let result = parse(r#"think "plan a release" loop:true max_iterations:5 priority:high /sandbox /private"#);
+        let result = parse(
+            r#"think "plan a release" loop:true max_iterations:5 priority:high /sandbox /private"#,
+        );
         assert!(result.is_ok());
         let stmts = result.unwrap();
         assert_eq!(stmts.len(), 1);
         match &stmts[0] {
-            Statement::Think { private, modifiers, .. } => {
+            Statement::Think {
+                private, modifiers, ..
+            } => {
                 assert!(*private);
                 assert!(modifiers.loop_enabled);
                 assert_eq!(modifiers.max_iterations, Some(5));

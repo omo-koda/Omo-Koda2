@@ -1,0 +1,31 @@
+{
+  "simulation_days": 365,
+  "num_agents": 100,
+  "final_dopamine_pool": 86000000000.0,
+  "reputation_stats": {
+    "average": 11.473257329519651,
+    "min": 4.103166828408471,
+    "max": 20.8108368783617,
+    "median": 11.407238506806403
+  },
+  "synapse_stats": {
+    "total_allocated": 0.0005212612394718729,
+    "average_per_agent": 5.212612394718728e-06,
+    "min": 5.212612394718728e-06,
+    "max": 5.212612394718728e-06,
+    "agents_depleted": 100
+  },
+  "tier_distribution": {
+    "NOVICE": 35,
+    "APPRENTICE": 65,
+    "JOURNEYMAN": 0,
+    "EXPERT": 0,
+    "MASTER": 0,
+    "SOVEREIGN": 0
+  },
+  "task_statistics": {
+    "total_completed": 5507,
+    "total_failed": 2593,
+    "success_rate": 0.6798765432098766
+  }
+}

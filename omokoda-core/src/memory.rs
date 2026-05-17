@@ -1,5 +1,5 @@
+use crate::session::{ContentBlock, ConversationMessage};
 use serde::{Deserialize, Serialize};
-use crate::session::{ConversationMessage, ContentBlock};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub enum CompressionLevel {
@@ -45,18 +45,26 @@ impl MemoryEngine {
     }
 
     pub fn estimate_usage(&self, messages: &[ConversationMessage]) -> usize {
-        messages.iter().map(|m| {
-            m.blocks.iter().map(|b| {
-                match b {
-                    ContentBlock::Text { text } => text.len(),
-                    ContentBlock::ToolUse { input, .. } => input.len(),
-                    ContentBlock::ToolResult { output, .. } => output.len(),
-                }
-            }).sum::<usize>()
-        }).sum()
+        messages
+            .iter()
+            .map(|m| {
+                m.blocks
+                    .iter()
+                    .map(|b| match b {
+                        ContentBlock::Text { text } => text.len(),
+                        ContentBlock::ToolUse { input, .. } => input.len(),
+                        ContentBlock::ToolResult { output, .. } => output.len(),
+                    })
+                    .sum::<usize>()
+            })
+            .sum()
     }
 
-    pub fn compress(&self, messages: &mut Vec<ConversationMessage>, reputation: f64) -> CompressionLevel {
+    pub fn compress(
+        &self,
+        messages: &mut Vec<ConversationMessage>,
+        reputation: f64,
+    ) -> CompressionLevel {
         let usage = self.estimate_usage(messages);
 
         if usage > self.thresholds.level_5 {
@@ -82,8 +90,13 @@ impl MemoryEngine {
     fn should_preserve(&self, message: &ConversationMessage, _reputation: f64) -> bool {
         // Preserve tool uses and results as they are "receipt anchors"
         // Also preserve system messages
-        message.role == crate::session::MessageRole::System ||
-        message.blocks.iter().any(|b| matches!(b, ContentBlock::ToolUse { .. } | ContentBlock::ToolResult { .. }))
+        message.role == crate::session::MessageRole::System
+            || message.blocks.iter().any(|b| {
+                matches!(
+                    b,
+                    ContentBlock::ToolUse { .. } | ContentBlock::ToolResult { .. }
+                )
+            })
     }
 
     fn content_replace(&self, messages: &mut [ConversationMessage], _reputation: f64) {
@@ -113,7 +126,7 @@ impl MemoryEngine {
         }
     }
 
-    fn micro_compact(&self, messages: &mut Vec<ConversationMessage>, reputation: f64) {
+    fn micro_compact(&self, messages: &mut [ConversationMessage], reputation: f64) {
         self.content_replace(messages, reputation);
     }
 
@@ -122,12 +135,15 @@ impl MemoryEngine {
             let to_collapse = 10;
             let summary_text = format!("[COLLAPSED {} EARLY MESSAGES]", to_collapse);
             messages.drain(0..to_collapse);
-            messages.insert(0, ConversationMessage {
-                role: crate::session::MessageRole::System,
-                blocks: vec![ContentBlock::Text { text: summary_text }],
-                is_private: false,
-                timestamp: 0,
-            });
+            messages.insert(
+                0,
+                ConversationMessage {
+                    role: crate::session::MessageRole::System,
+                    blocks: vec![ContentBlock::Text { text: summary_text }],
+                    is_private: false,
+                    timestamp: 0,
+                },
+            );
         }
     }
 

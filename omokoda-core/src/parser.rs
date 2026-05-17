@@ -104,8 +104,8 @@ fn contains_blocked_identifiers(input: &str) -> bool {
                 .get(pos + id.len())
                 .map(|&b| b as char);
 
-            let before_is_word = before.map_or(false, |c| c.is_alphanumeric() || c == '_');
-            let after_is_word = after.map_or(false, |c| c.is_alphanumeric() || c == '_');
+            let before_is_word = before.is_some_and(|c| c.is_alphanumeric() || c == '_');
+            let after_is_word = after.is_some_and(|c| c.is_alphanumeric() || c == '_');
 
             // If it's a standalone word or part of a technical identifier (with _), block it.
             // But we want to allow it if it's part of a DIFFERENT non-blocked word.

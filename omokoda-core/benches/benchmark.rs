@@ -6,10 +6,12 @@ fn provider_routing_benchmark(c: &mut Criterion) {
     let mut registry = ProviderRegistry::new();
     registry.register(Box::new(MockProvider::new("mock-a".to_string())));
     registry.register(Box::new(MockProvider::new("mock-b".to_string())));
+    let runtime = tokio::runtime::Runtime::new().unwrap();
 
     c.bench_function("provider_routing", |b| {
         b.iter(|| {
-            let _ = registry.route_think("hello", &[], false);
+            let result = runtime.block_on(registry.route_think("hello", &[], false));
+            black_box(result).unwrap();
         })
     });
 }
@@ -29,7 +31,7 @@ fn wasm_tool_execution_benchmark(c: &mut Criterion) {
     });
 }
 
-criterion_group!{
+criterion_group! {
     name = benches;
     config = Criterion::default().measurement_time(Duration::from_secs(3));
     targets = provider_routing_benchmark, wasm_tool_execution_benchmark

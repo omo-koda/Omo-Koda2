@@ -1,13 +1,12 @@
 #[cfg(test)]
 mod rack_tests {
-    use omokoda_core::session::{Session, ConversationMessage, PrivateSessionData, ContentBlock, MessageRole};
     use omokoda_core::identity::AgentId;
-    use omokoda_core::identity::odu::{OduSeed, OduIdentity};
+    use omokoda_core::session::{ContentBlock, ConversationMessage, MessageRole, Session};
 
     #[test]
     fn public_messages_compression_level_1() {
         let mut session = Session::new(AgentId::new("0123456789abcdefghij"), "luna".to_string(), 0);
-        
+
         // Large tool result to trigger ContentReplace (Level 1)
         let large_output = "A".repeat(5000);
         let msg = ConversationMessage {
@@ -22,7 +21,7 @@ mod rack_tests {
         };
 
         session.push_public(msg, 0.0);
-        
+
         if let ContentBlock::ToolResult { output, .. } = &session.public_messages[0].blocks[0] {
             assert!(output.len() <= 1025); // 1000 + truncation message
             assert!(output.contains("[TRUNCATED]"));
@@ -34,12 +33,12 @@ mod rack_tests {
     #[test]
     fn public_messages_compression_level_2() {
         let mut session = Session::new(AgentId::new("0123456789abcdefghij"), "luna".to_string(), 0);
-        
+
         // Push many non-essential messages to exceed Level 2 threshold (8000 chars)
-        for i in 0..100 {
+        for _ in 0..100 {
             session.push_public(ConversationMessage::user_text(&"B".repeat(100)), 0.0);
         }
-        
+
         // Snip should have removed some messages
         assert!(session.public_messages.len() < 100);
     }

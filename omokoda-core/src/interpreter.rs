@@ -300,10 +300,11 @@ impl Steward {
             Statement::Birth { name, metadata } => {
                 let agent = AgentState::birth(name, metadata);
                 let provider = agent.session.config.default_provider.clone();
-                if !provider.is_empty() && !provider.eq_ignore_ascii_case("default") {
-                    if !self.providers.is_known_provider(&provider) {
-                        return Err(format!("unknown provider '{}' in birth metadata", provider));
-                    }
+                if !provider.is_empty()
+                    && !provider.eq_ignore_ascii_case("default")
+                    && !self.providers.is_known_provider(&provider)
+                {
+                    return Err(format!("unknown provider '{}' in birth metadata", provider));
                 }
                 self.agent = Some(agent);
                 self.auto_save();

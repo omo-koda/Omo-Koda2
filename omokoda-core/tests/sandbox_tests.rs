@@ -6,7 +6,8 @@ mod sandbox_tests {
 
     #[tokio::test]
     async fn wasm_tool_executes_simple_module_in_sandbox() {
-        let wasm_bytes = parse_str(r#"(module
+        let wasm_bytes = parse_str(
+            r#"(module
   (import "wasi_snapshot_preview1" "fd_write" (func $fd_write (param i32 i32 i32 i32) (result i32)))
   (import "wasi_snapshot_preview1" "proc_exit" (func $proc_exit (param i32)))
   (memory 1)
@@ -18,7 +19,9 @@ mod sandbox_tests {
     (i32.const 0)
   )
   (start $main)
-)"#).unwrap();
+)"#,
+        )
+        .unwrap();
 
         fs::write("test_simple.wasm", &wasm_bytes).unwrap();
         let registry = ToolRegistry::new();
@@ -35,6 +38,8 @@ mod sandbox_tests {
         let registry = ToolRegistry::new();
         let result = registry.execute("wasm", "../secret.wasm", true, 2).await;
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("relative and within workspace"));
+        assert!(result
+            .unwrap_err()
+            .contains("relative and within workspace"));
     }
 }

@@ -22,7 +22,11 @@ pub struct ProviderMetadata {
 #[async_trait]
 pub trait LlmProvider: Send + Sync {
     fn metadata(&self) -> &ProviderMetadata;
-    async fn generate(&self, prompt: &str, history: &[ConversationMessage]) -> Result<String, String>;
+    async fn generate(
+        &self,
+        prompt: &str,
+        history: &[ConversationMessage],
+    ) -> Result<String, String>;
 }
 
 pub struct ProviderRegistry {
@@ -34,7 +38,9 @@ impl ProviderRegistry {
         let mut registry = Self {
             providers: Vec::new(),
         };
-        registry.register(Box::new(OllamaProvider::new("http://localhost:11434".to_string())));
+        registry.register(Box::new(OllamaProvider::new(
+            "http://localhost:11434".to_string(),
+        )));
         registry.register(Box::new(WebLLMProvider::new()));
 
         if let Ok(api_key) = std::env::var("OPENAI_API_KEY") {
@@ -59,18 +65,30 @@ impl ProviderRegistry {
         self.providers.push(provider);
     }
 
-    pub fn register_openai(&mut self, api_key: String, model: Option<String>, endpoint: Option<String>) {
+    pub fn register_openai(
+        &mut self,
+        api_key: String,
+        model: Option<String>,
+        endpoint: Option<String>,
+    ) {
         self.register(Box::new(OpenAIProvider::new(api_key, model, endpoint)));
     }
 
-    pub fn register_anthropic(&mut self, api_key: String, model: Option<String>, endpoint: Option<String>) {
+    pub fn register_anthropic(
+        &mut self,
+        api_key: String,
+        model: Option<String>,
+        endpoint: Option<String>,
+    ) {
         self.register(Box::new(AnthropicProvider::new(api_key, model, endpoint)));
     }
 
     pub fn is_allowed_in_private(&self, provider: &ProviderMetadata) -> bool {
         match provider.class {
             ProviderClass::Local => {
-                provider.endpoint.contains("localhost") || provider.endpoint.contains("127.0.0.1") || provider.endpoint.contains("mock://")
+                provider.endpoint.contains("localhost")
+                    || provider.endpoint.contains("127.0.0.1")
+                    || provider.endpoint.contains("mock://")
             }
             ProviderClass::BrowserLocal => true,
             ProviderClass::RegisteredLocal => true,
@@ -79,10 +97,10 @@ impl ProviderRegistry {
         }
     }
 
-    pub fn get_provider(&self, provider_name: &str) -> Option<&Box<dyn LlmProvider>> {
+    pub fn get_provider(&self, provider_name: &str) -> Option<&dyn LlmProvider> {
         let normalized = provider_name.to_lowercase();
-        self.providers.iter().find(|p| {
-            let metadata = p.metadata();
+        self.providers.iter().map(Box::as_ref).find(|provider| {
+            let metadata = provider.metadata();
             metadata.name.to_lowercase() == normalized
                 || metadata.endpoint.to_lowercase() == normalized
         })
@@ -120,7 +138,9 @@ impl ProviderRegistry {
             return Err("No local provider available in /private mode (HARD FAIL)".to_string());
         }
 
-        match tokio::time::timeout(Duration::from_secs(30), provider.generate(prompt, history)).await {
+        match tokio::time::timeout(Duration::from_secs(30), provider.generate(prompt, history))
+            .await
+        {
             Ok(Ok(response)) => Ok(response),
             Ok(Err(e)) => Err(format!("provider '{}' error: {}", provider_name, e)),
             Err(_) => Err(format!("provider '{}' timed out", provider_name)),
@@ -129,7 +149,11 @@ impl ProviderRegistry {
 
     fn provider_order(private_mode: bool) -> &'static [ProviderClass] {
         if private_mode {
-            &[ProviderClass::Local, ProviderClass::BrowserLocal, ProviderClass::RegisteredLocal]
+            &[
+                ProviderClass::Local,
+                ProviderClass::BrowserLocal,
+                ProviderClass::RegisteredLocal,
+            ]
         } else {
             &[
                 ProviderClass::Local,
@@ -142,7 +166,6 @@ impl ProviderRegistry {
     }
 
     pub async fn route_think(
-
         &self,
         prompt: &str,
         history: &[ConversationMessage],
@@ -150,14 +173,23 @@ impl ProviderRegistry {
     ) -> Result<String, String> {
         let order = Self::provider_order(private_mode);
         for provider_class in order {
-            for provider in self.providers.iter().filter(|p| p.metadata().class == *provider_class) {
+            for provider in self
+                .providers
+                .iter()
+                .filter(|p| p.metadata().class == *provider_class)
+            {
                 let metadata = provider.metadata();
 
                 if private_mode && !self.is_allowed_in_private(metadata) {
                     continue;
                 }
 
-                match tokio::time::timeout(Duration::from_secs(30), provider.generate(prompt, history)).await {
+                match tokio::time::timeout(
+                    Duration::from_secs(30),
+                    provider.generate(prompt, history),
+                )
+                .await
+                {
                     Ok(Ok(response)) => return Ok(response),
                     Ok(Err(_e)) => {
                         // Try next provider in the same class or next class
@@ -180,7 +212,14 @@ impl ProviderRegistry {
 impl std::fmt::Debug for ProviderRegistry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ProviderRegistry")
-            .field("providers", &self.providers.iter().map(|p| p.metadata().name.clone()).collect::<Vec<_>>())
+            .field(
+                "providers",
+                &self
+                    .providers
+                    .iter()
+                    .map(|p| p.metadata().name.clone())
+                    .collect::<Vec<_>>(),
+            )
             .finish()
     }
 }
@@ -216,7 +255,11 @@ impl LlmProvider for OllamaProvider {
         &self.metadata
     }
 
-    async fn generate(&self, prompt: &str, _history: &[ConversationMessage]) -> Result<String, String> {
+    async fn generate(
+        &self,
+        prompt: &str,
+        _history: &[ConversationMessage],
+    ) -> Result<String, String> {
         let url = format!("{}/api/generate", self.metadata.endpoint);
         let body = serde_json::json!({
             "model": "llama3", // Default model
@@ -224,7 +267,9 @@ impl LlmProvider for OllamaProvider {
             "stream": false
         });
 
-        let resp = self.client.post(url)
+        let resp = self
+            .client
+            .post(url)
             .json(&body)
             .send()
             .await
@@ -256,13 +301,23 @@ impl WebLLMProvider {
     }
 }
 
+impl Default for WebLLMProvider {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[async_trait]
 impl LlmProvider for WebLLMProvider {
     fn metadata(&self) -> &ProviderMetadata {
         &self.metadata
     }
 
-    async fn generate(&self, _prompt: &str, _history: &[ConversationMessage]) -> Result<String, String> {
+    async fn generate(
+        &self,
+        _prompt: &str,
+        _history: &[ConversationMessage],
+    ) -> Result<String, String> {
         Err("WebLLM provider not implemented".to_string())
     }
 }
@@ -298,11 +353,18 @@ impl LlmProvider for OpenAIProvider {
         &self.metadata
     }
 
-    async fn generate(&self, prompt: &str, history: &[ConversationMessage]) -> Result<String, String> {
+    async fn generate(
+        &self,
+        prompt: &str,
+        history: &[ConversationMessage],
+    ) -> Result<String, String> {
         let url = if self.metadata.endpoint.contains("/v1/") {
             self.metadata.endpoint.clone()
         } else {
-            format!("{}/v1/chat/completions", self.metadata.endpoint.trim_end_matches('/'))
+            format!(
+                "{}/v1/chat/completions",
+                self.metadata.endpoint.trim_end_matches('/')
+            )
         };
 
         let mut messages = Vec::new();
@@ -316,10 +378,10 @@ impl LlmProvider for OpenAIProvider {
             let content = message
                 .blocks
                 .iter()
-                .filter_map(|block| match block {
-                    crate::session::ContentBlock::Text { text } => Some(text.clone()),
-                    crate::session::ContentBlock::ToolResult { output, .. } => Some(output.clone()),
-                    crate::session::ContentBlock::ToolUse { input, .. } => Some(input.clone()),
+                .map(|block| match block {
+                    crate::session::ContentBlock::Text { text } => text.clone(),
+                    crate::session::ContentBlock::ToolResult { output, .. } => output.clone(),
+                    crate::session::ContentBlock::ToolUse { input, .. } => input.clone(),
                 })
                 .collect::<Vec<_>>()
                 .join(" ");
@@ -388,11 +450,18 @@ impl LlmProvider for AnthropicProvider {
         &self.metadata
     }
 
-    async fn generate(&self, prompt: &str, _history: &[ConversationMessage]) -> Result<String, String> {
+    async fn generate(
+        &self,
+        prompt: &str,
+        _history: &[ConversationMessage],
+    ) -> Result<String, String> {
         let url = if self.metadata.endpoint.contains("/v1/") {
             self.metadata.endpoint.clone()
         } else {
-            format!("{}/v1/complete", self.metadata.endpoint.trim_end_matches('/'))
+            format!(
+                "{}/v1/complete",
+                self.metadata.endpoint.trim_end_matches('/')
+            )
         };
 
         let body = serde_json::json!({
@@ -445,7 +514,11 @@ impl LlmProvider for MockProvider {
         &self.metadata
     }
 
-    async fn generate(&self, _prompt: &str, _history: &[ConversationMessage]) -> Result<String, String> {
+    async fn generate(
+        &self,
+        _prompt: &str,
+        _history: &[ConversationMessage],
+    ) -> Result<String, String> {
         Ok(self.response.clone())
     }
 }

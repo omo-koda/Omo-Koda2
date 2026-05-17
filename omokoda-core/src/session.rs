@@ -1,6 +1,6 @@
 use crate::identity::odu::{OduIdentity, OduSeed};
 use crate::identity::AgentId;
-use argon2::{Argon2, Algorithm, Params, Version};
+use argon2::{Algorithm, Argon2, Params, Version};
 use blake3;
 use chacha20poly1305::{
     aead::{Aead, KeyInit},
@@ -272,7 +272,12 @@ impl Session {
         new_password_key: &[u8; 32],
     ) -> Result<(), String> {
         let private_data = self.unseal_private(odu_seed, old_password_key)?;
-        let new_version = self.encrypted_private.as_ref().map(|d| d.key_version).unwrap_or(0) + 1;
+        let new_version = self
+            .encrypted_private
+            .as_ref()
+            .map(|d| d.key_version)
+            .unwrap_or(0)
+            + 1;
         self.seal_private_with_version(&private_data, odu_seed, new_password_key, new_version)?;
         Ok(())
     }
@@ -420,7 +425,10 @@ fn derive_session_key(
     okm
 }
 
-pub fn derive_unlock_key(password: &str, agent_public_key: &[u8; 32]) -> Result<SensitiveKey, String> {
+pub fn derive_unlock_key(
+    password: &str,
+    agent_public_key: &[u8; 32],
+) -> Result<SensitiveKey, String> {
     let params = Params::new(
         ARGON2_MEMORY_KB,
         ARGON2_ITERATIONS,
