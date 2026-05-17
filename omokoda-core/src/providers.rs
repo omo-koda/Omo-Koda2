@@ -506,6 +506,17 @@ impl MockProvider {
             response,
         }
     }
+
+    pub fn new_external(name: &str, response: String) -> Self {
+        Self {
+            metadata: ProviderMetadata {
+                name: name.to_string(),
+                class: ProviderClass::External,
+                endpoint: "https://mock.api".to_string(),
+            },
+            response,
+        }
+    }
 }
 
 #[async_trait]

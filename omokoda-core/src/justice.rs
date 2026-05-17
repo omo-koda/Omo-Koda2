@@ -1,6 +1,47 @@
+use omokoda_hermetic::HermeticState;
 use serde::{Deserialize, Serialize};
 use std::io::Write;
 use std::process::Command;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HermeticEvaluation {
+    pub balance: f64,    // 0.0 - 1.0 (how aligned the act was with agent's principles)
+    pub alignment: f64,  // 0.0 - 1.0 (structural consistency)
+}
+
+impl HermeticEvaluation {
+    pub fn new(state: &HermeticState, primitive: &str, output: &str) -> Self {
+        // Behavioral Law manifestation (Layer B)
+        // This is a simplified deterministic manifestation for Week 1.
+        
+        let output_len = output.len() as f64;
+        let balance = match primitive {
+            "think" => {
+                // think -> Mentalism (abstraction depth), Correspondence (consistency), Vibration (edge)
+                let mentalism = state.mentalism();
+                let abstraction_score = (output_len / 1000.0).min(1.0);
+                1.0 - (mentalism - abstraction_score).abs()
+            }
+            "act" => {
+                // act -> Polarity (constructive/destructive), Rhythm (cooldown), Cause & Effect (receipts)
+                let polarity = state.polarity();
+                let quality_score = if output_len > 100.0 { 0.8 } else { 0.4 };
+                1.0 - (polarity - quality_score).abs()
+            }
+            _ => 1.0,
+        };
+
+        Self {
+            balance: balance.clamp(0.0, 1.0),
+            alignment: 1.0, // Static for Week 1
+        }
+    }
+
+    pub fn multiplier(&self) -> f64 {
+        // Alignment impacts reputation gain
+        0.8 + (self.balance * 0.4) // Range: 0.8x to 1.2x
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ActQuality {
@@ -188,9 +229,11 @@ impl JusticeEngine {
         _params: &str,
         output: &str,
         is_success: bool,
-    ) -> (f64, ActQuality) {
+        hermetic: &HermeticState,
+    ) -> (f64, ActQuality, HermeticEvaluation) {
         use crate::reputation::{reputation_gain, ACT_TIER_0, ACT_TIER_1, ACT_TIER_2, ACT_TIER_4};
         let quality = self.evaluate_act(output, !is_success);
+        let hermetic_eval = HermeticEvaluation::new(hermetic, "act", output);
 
         let base = match quality {
             ActQuality::Failed => ACT_TIER_0,
@@ -200,15 +243,27 @@ impl JusticeEngine {
             ActQuality::Exceptional => ACT_TIER_4,
         };
 
-        let gain = reputation_gain(base, current_reputation, quality.multiplier());
-        (current_reputation + gain, quality)
+        let gain = reputation_gain(
+            base,
+            current_reputation,
+            quality.multiplier() * hermetic_eval.multiplier(),
+        );
+        (current_reputation + gain, quality, hermetic_eval)
     }
 
-    pub fn evaluate_think(&self, current_reputation: f64, high_value: bool) -> (f64, f64) {
+    pub fn evaluate_think(
+        &self,
+        current_reputation: f64,
+        high_value: bool,
+        output: &str,
+        hermetic: &HermeticState,
+    ) -> (f64, f64, HermeticEvaluation) {
         use crate::reputation::{reputation_gain, THINK_HIGH, THINK_NORMAL};
         let base = if high_value { THINK_HIGH } else { THINK_NORMAL };
-        let gain = reputation_gain(base, current_reputation, 1.0);
-        (current_reputation + gain, gain)
+        let hermetic_eval = HermeticEvaluation::new(hermetic, "think", output);
+
+        let gain = reputation_gain(base, current_reputation, hermetic_eval.multiplier());
+        (current_reputation + gain, gain, hermetic_eval)
     }
 
     pub fn check_ethics_violation(&self, reputation: f64) -> f64 {

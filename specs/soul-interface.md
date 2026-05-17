@@ -1,66 +1,96 @@
-# Soul Interface Specification (v1.0 — FROZEN)
+# Ọmọ Kọ́dà Soul Interface Spec
+**Version: 1.0.0 (FROZEN for Week 2)**
 
-## Purpose
+This document defines the boundary between the Rust sovereign runtime and the Sui on-chain identity.
 
-Defines the soul.move object fields and entry functions.
-This spec must be written before any identity or memory code is built.
-All other contracts (agent.move, garden.move, hive.move) reference soul.move.
+## 1. The Soul Object (soul.move)
 
-## soul.move Object
+The `SoulState` is the root of an agent's existence. It is created exactly once at birth and is immutable.
 
-```
-SoulState {
-  id:                    UID,
-  agent_id:              vector<u8>,   // unique agent identifier
-  odu_seed_commitment:   vector<u8>,   // BLAKE3(K_root || odu_index) — public anchor
-  hermetic_seed:         vector<u8>,   // birth seed for HermeticState derivation
-  birth_timestamp:       u64,          // identity-critical — never 0, never changed
-  dna_fingerprint:       vector<u8>,   // 86-char fingerprint as bytes
+### 1.1 Fields
+
+```rust
+struct SoulState has key, store {
+    id: UID,
+    agent_id: vector<u8>,           // 16-char agent-xxxxxxxxxxxxxxxx
+    birth_timestamp: u64,           // identity-critical (current_unix_timestamp)
+    hermetic_seed: vector<u8>,      // 32 bytes derived from Odu Primary Index
+    odu_seed_commitment: vector<u8>, // BLAKE3(K_root || odu_index)
+    dna_fingerprint: vector<u8>,    // 86-char string
 }
 ```
 
-## Entry Functions
+### 1.2 Invariants
+- `birth_timestamp` MUST match the value used for K_0 derivation.
+- `agent_id` MUST be unique across the hive.
+- `hermetic_seed` is used to initialize the 7 principles.
 
-```
-commit_odu_seed(odu_seed: vector<u8>, hermetic_seed: vector<u8>, ctx: &mut TxContext)
-  → creates SoulState object
-  → emits SoulForged event
-  → birth_timestamp = tx_context::epoch(ctx)
-  → MUST NOT be called twice for the same agent_id
+---
 
-transfer_soul(soul: SoulState, new_owner: address, ctx: &mut TxContext)
-  → transfers ownership
-  → emits SoulTransferred event
-  → does NOT rotate K_root (that happens in SEAL vault, not on-chain)
-```
+## 2. The Agent Object (agent.move)
 
-## Events
+The `AgentState` is the mutable expression of the soul.
 
-```
-SoulForged {
-  agent_id:    vector<u8>,
-  commitment:  vector<u8>,   // odu_seed_commitment
-  timestamp:   u64,
-}
+### 2.1 Fields
 
-SoulTransferred {
-  agent_id:    vector<u8>,
-  new_owner:   address,
-  timestamp:   u64,
+```rust
+struct AgentState has key {
+    id: UID,
+    soul: ID,                       // Reference to SoulState
+    reputation: u64,                // Stored as rep * 1000
+    tier: u8,                       // 0 to 5
+    birth_timestamp: u64,           // Must match SoulState
+    dna_fingerprint: vector<u8>,    // Must match SoulState
+    act_counter: u64,               // Total number of acts performed
 }
 ```
 
-## Invariants
+---
 
-- birth_timestamp is set once at creation and never modified
-- odu_seed_commitment is a one-way binding — K_root cannot be derived from it
-- hermetic_seed is stored on-chain for auditability and reproducibility
-- dry_run is prohibited on all transactions involving soul objects
-- soul.move must be deployed before agent.move, garden.move, or hive.move
+## 3. BIPỌ̀N39 Mnemonic Interface
 
-## What soul.move Does NOT Do
+The mnemonic is the recovery path for the agent's soul.
 
-- Does NOT hold K_root (that lives inside SEAL vault enclave)
-- Does NOT manage memory (that is Walrus + SEAL)
-- Does NOT track reputation or tier (that is agent.move)
-- Does NOT handle payments (that is garden.move)
+- **Wordlist Size**: 256 tokens.
+- **Encoding**: 32 bytes entropy -> 33 words (1 word per 7.75 bits + checksum).
+- **Derivation Path**: `m/44'/784'/0'/0/0` (Sui Standard).
+- **KDF**: `argon2id(memory=65536, iterations=3, parallelism=1, output=32)`.
+
+---
+
+## 4. SEAL Vault Boundary
+
+- `K_root` NEVER leaves the hardware enclave.
+- All on-chain commitments are salted with `BLAKE3(agent_id || birth_timestamp || chain_id)`.
+- Key rotation happens every 100 acts or 24 hours.
+
+---
+
+## 5. Entry Functions
+
+### 5.1 `birth_agent`
+```move
+public entry fun birth_agent(
+    name: vector<u8>,
+    metadata: vector<MetadataPair>,
+    ctx: &mut TxContext
+)
+```
+- Creates `SoulState` and `AgentState`.
+- Emits `BirthEvent`.
+
+### 5.2 `record_act`
+```move
+public entry fun record_act(
+    agent: &mut AgentState,
+    action: vector<u8>,
+    payload_hash: vector<u8>,
+    signature: vector<u8>,
+    ctx: &mut TxContext
+)
+```
+- Verifies signature against agent's public key.
+- Updates `reputation` and `tier`.
+- Increments `act_counter`.
+- Emits `ActReceipt`.
+- **Structurally prohibited from `dry_run` execution.**

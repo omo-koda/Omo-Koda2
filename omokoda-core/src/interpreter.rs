@@ -73,6 +73,7 @@ pub struct AgentState {
     #[serde(skip)]
     pub private_data: Option<PrivateSessionData>,
     pub resonance: Option<omokoda_hermetic::fractal::ResonanceSignature>,
+    pub synapse: f64,
 }
 
 impl AgentState {
@@ -135,6 +136,7 @@ impl AgentState {
             public_key,
             private_data: Some(private_data),
             resonance,
+            synapse: 8_600_000.0,
         }
     }
 
@@ -192,6 +194,21 @@ impl AgentState {
 
     pub fn private_data(&self) -> Option<&PrivateSessionData> {
         self.private_data.as_ref()
+    }
+
+    pub fn synapse(&self) -> f64 {
+        self.synapse
+    }
+
+    pub fn burn_synapse(&mut self, amount: f64) -> Result<(), String> {
+        if self.synapse < amount {
+            return Err(format!(
+                "Insufficient synapse budget. Required: {:.0}, Available: {:.0}",
+                amount, self.synapse
+            ));
+        }
+        self.synapse -= amount;
+        Ok(())
     }
 
     pub fn signing_key(&self) -> SigningKey {
@@ -427,9 +444,14 @@ impl Steward {
                         crate::intent::IntentClass::ComplexTask
                             | crate::intent::IntentClass::Monitoring
                     );
-                let (new_rep, _) = self.justice.evaluate_think(current_rep, high_value);
+                let agent = self.ensure_born()?;
+                let hermetic_state = agent.hermetic_state().clone();
+                let (new_rep, _, hermetic_eval) =
+                    self.justice
+                        .evaluate_think(current_rep, high_value, &response, &hermetic_state);
 
                 let agent_mut = self.ensure_born_mut()?;
+                agent_mut.burn_synapse(1_000.0)?; // THINK burns 1000 synapses
                 agent_mut.add_message(ConversationMessage::new_user(prompt, private));
                 agent_mut.add_message(ConversationMessage::new_assistant(
                     response.clone(),
@@ -505,9 +527,15 @@ impl Steward {
 
                 // Justice module: Reputation update
                 let current_rep = agent.reputation();
-                let (new_rep, _) =
-                    self.justice
-                        .evaluate_action(current_rep, &tool, &params, &output, true);
+                let hermetic_state = agent.hermetic_state().clone();
+                let (new_rep, _, hermetic_eval) = self.justice.evaluate_action(
+                    current_rep,
+                    &tool,
+                    &params,
+                    &output,
+                    true,
+                    &hermetic_state,
+                );
 
                 // Justice HookRunner: Post-act
                 let post_hook_ctx = crate::justice::HookContext {
@@ -528,6 +556,7 @@ impl Steward {
                 }
 
                 let agent_mut = self.ensure_born_mut()?;
+                agent_mut.burn_synapse(5_000.0)?; // ACT burns 5000 synapses
                 agent_mut.update_reputation(new_rep, ReputationChangeReason::Act);
 
                 // Receipt generation
@@ -879,9 +908,16 @@ impl Steward {
             .map_err(|e| format!("Tool execution failed: {}", e))?;
 
         let current_rep = self.reputation();
-        let (new_rep, _) =
-            self.justice
-                .evaluate_action(current_rep, &call.tool, &call.params, &output, true);
+        let agent = self.ensure_born()?;
+        let hermetic_state = agent.hermetic_state().clone();
+        let (new_rep, _, hermetic_eval) = self.justice.evaluate_action(
+            current_rep,
+            &call.tool,
+            &call.params,
+            &output,
+            true,
+            &hermetic_state,
+        );
 
         let post_hook_ctx = crate::justice::HookContext {
             tool_name: call.tool.clone(),
