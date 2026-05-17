@@ -6,6 +6,8 @@ use std::process::Command;
 
 use crate::sandbox::WasmSandbox;
 
+pub mod sovereign;
+
 #[async_trait]
 pub trait Tool: Send + Sync {
     fn name(&self) -> &str;

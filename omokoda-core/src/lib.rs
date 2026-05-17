@@ -10,6 +10,7 @@ pub mod reputation;
 pub mod sandbox;
 pub mod session;
 pub mod tools;
+pub mod execution;
 
 pub use identity::AgentId;
 pub use intent::{
