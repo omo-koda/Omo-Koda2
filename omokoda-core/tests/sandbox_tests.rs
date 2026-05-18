@@ -26,7 +26,8 @@ mod sandbox_tests {
         fs::write("test_simple.wasm", &wasm_bytes).unwrap();
         let registry = ToolRegistry::new();
 
-        let result = registry.execute("wasm", "test_simple.wasm", true, 2).await;
+        let policy = omokoda_core::permissions::PermissionPolicy::default_steward_policy(omokoda_core::permissions::PermissionMode::DangerFullAccess);
+        let result = registry.execute("wasm", "test_simple.wasm", true, 2, &policy, None).await;
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "WASM execution succeeded");
 
@@ -36,7 +37,8 @@ mod sandbox_tests {
     #[tokio::test]
     async fn wasm_tool_rejects_outside_workspace_paths() {
         let registry = ToolRegistry::new();
-        let result = registry.execute("wasm", "../secret.wasm", true, 2).await;
+        let policy = omokoda_core::permissions::PermissionPolicy::default_steward_policy(omokoda_core::permissions::PermissionMode::DangerFullAccess);
+        let result = registry.execute("wasm", "../secret.wasm", true, 2, &policy, None).await;
         assert!(result.is_err());
         assert!(result
             .unwrap_err()

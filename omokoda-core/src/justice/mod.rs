@@ -29,7 +29,7 @@ impl HermeticEvaluation {
             "act" => {
                 // act -> Polarity (constructive/destructive), Rhythm (cooldown), Cause & Effect (receipts)
                 let polarity = state.polarity();
-                let quality_score = if output_len > 100.0 { 0.8 } else { 0.4 };
+                let quality_score = if output_len > 250.0 { 0.8 } else { 0.4 };
                 1.0 - (polarity - quality_score).abs()
             }
             _ => 1.0,
@@ -217,9 +217,9 @@ impl JusticeEngine {
 
         // Simple heuristic for now: length of output as a proxy for utility
         let len = tool_output.len();
-        if len > 500 {
+        if len > 1000 {
             ActQuality::HighValue
-        } else if len > 100 {
+        } else if len > 250 {
             ActQuality::Useful
         } else {
             ActQuality::Basic

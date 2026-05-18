@@ -460,15 +460,15 @@ impl Steward {
                 };
                 let hook_decision = self.justice.hook_runner.run_pre(&compile_hook_ctx);
 
-                let response = match hook_decision {
+                let (response, usage) = match hook_decision {
                     crate::justice::HookDecision::Deny(reason) => {
-                        format!("Intent refused by Justice pre-hook: {reason}")
+                        (format!("Intent refused by Justice pre-hook: {reason}"), TokenUsage::default())
                     }
                     crate::justice::HookDecision::Warn(warning) => {
-                        let base = self
+                        let (base, usage) = self
                             .execute_compiled_think(&prompt, private, &provider, &compilation)
                             .await?;
-                        format!("Justice warning: {warning}\n{base}")
+                        (format!("Justice warning: {warning}\n{base}"), usage)
                     }
                     crate::justice::HookDecision::Allow => {
                         self.execute_compiled_think(&prompt, private, &provider, &compilation)
@@ -528,24 +528,7 @@ impl Steward {
                 })
                 .to_string();
 
-                let receipt = {
-                    let agent_mut = self.ensure_born_mut()?;
-                    let last_hash = agent_mut.receipts.last_hash().to_string();
-                    let merkle_root = agent_mut.receipts.current_merkle_root();
-                    let signing_key = agent_mut.signing_key();
-                    let agent_id = agent_mut.id().clone();
-                    let receipt = Receipt::new_merkle(
-                        &agent_id,
-                        "think",
-                        &receipt_payload,
-                        &last_hash,
-                        &merkle_root,
-                        &signing_key,
-                    );
-                    agent_mut.receipts.record(receipt.clone());
-                    self.usage_tracker.record(TokenUsage::default());
-                    receipt
-                };
+                let receipt = self.record_receipt("think", &receipt_payload, usage)?;
 
                 // Hermetic Gate: Think
                 {
@@ -616,15 +599,16 @@ impl Steward {
                 // If sandbox requested, verify it's enabled in session config or force it
                 let force_sandbox = sandbox || agent.session.config.default_sandbox;
 
-                // Permission Policy enforcement
-                let auth_result = self.permission_policy.authorize(&tool, &params, None);
-                if let crate::permissions::PermissionOutcome::Deny { reason } = auth_result {
-                    return Err(format!("Permission denied: {}", reason));
-                }
-
                 let output = self
                     .tools
-                    .execute(&tool, &params, force_sandbox, tier)
+                    .execute(
+                        &tool,
+                        &params,
+                        force_sandbox,
+                        tier,
+                        &self.permission_policy,
+                        None,
+                    )
                     .await
                     .map_err(|e| format!("Tool execution failed: {}", e))?;
 
@@ -960,16 +944,16 @@ impl Steward {
         private: bool,
         provider: &str,
         compilation: &IntentCompilation,
-    ) -> Result<String, String> {
+    ) -> Result<(String, TokenUsage), String> {
         if !compilation.validation.allowed || compilation.validation.requires_confirmation {
-            return Ok(format_compilation_response(compilation));
+            return Ok((format_compilation_response(compilation), TokenUsage::default()));
         }
 
         if !compilation.direct_act_calls.is_empty() {
             let mut outputs = Vec::new();
             for call in &compilation.direct_act_calls {
                 if call.high_risk {
-                    return Ok(format_compilation_response(compilation));
+                    return Ok((format_compilation_response(compilation), TokenUsage::default()));
                 }
                 let (receipt, output) = self.execute_direct_act_call(call, private).await?;
                 outputs.push(format!(
@@ -980,7 +964,7 @@ impl Steward {
             let mut response = format_compilation_response(compilation);
             response.push_str("\n\nExecuted direct act calls:\n");
             response.push_str(&outputs.join("\n"));
-            return Ok(response);
+            return Ok((response, TokenUsage::default()));
         }
 
         self.providers
@@ -1030,7 +1014,14 @@ impl Steward {
         let force_sandbox = call.sandbox || default_sandbox;
         let output = self
             .tools
-            .execute(&call.tool, &call.params, force_sandbox, tier)
+            .execute(
+                &call.tool,
+                &call.params,
+                force_sandbox,
+                tier,
+                &self.permission_policy,
+                None,
+            )
             .await
             .map_err(|e| format!("Tool execution failed: {}", e))?;
 
@@ -1063,25 +1054,16 @@ impl Steward {
             crate::justice::HookDecision::Allow => {}
         }
 
-        let agent_mut = self.ensure_born_mut()?;
-        agent_mut.update_reputation(new_rep, ReputationChangeReason::Act);
-        agent_mut.increment_act_counter();
+        {
+            let agent_mut = self.ensure_born_mut()?;
+            agent_mut.update_reputation(new_rep, ReputationChangeReason::Act);
+            agent_mut.increment_act_counter();
+        }
 
-        let last_hash = agent_mut.receipts.last_hash().to_string();
-        let merkle_root = agent_mut.receipts.current_merkle_root();
-        let signing_key = agent_mut.signing_key();
-        let agent_id = agent_mut.id().clone();
-        let receipt = Receipt::new_merkle(
-            &agent_id,
-            &call.tool,
-            &call.params,
-            &last_hash,
-            &merkle_root,
-            &signing_key,
-        );
+        let receipt = self.record_receipt(&call.tool, &call.params, TokenUsage::default())?;
 
-        agent_mut.receipts.record(receipt.clone());
         let message_private = private_context || force_sandbox;
+        let agent_mut = self.ensure_born_mut()?;
         agent_mut.add_message(ConversationMessage {
             role: MessageRole::Assistant,
             blocks: vec![ContentBlock::ToolUse {
@@ -1109,12 +1091,12 @@ impl Steward {
 
     fn record_receipt(
         &mut self,
-        agent_mut: &mut AgentState,
         action: &str,
         params: &str,
-        usage: crate::usage::TokenUsage,
+        usage: TokenUsage,
     ) -> Result<Receipt, String> {
         self.usage_tracker.record(usage);
+        let agent_mut = self.ensure_born_mut()?;
         let last_hash = agent_mut.receipts.last_hash().to_string();
         let merkle_root = agent_mut.receipts.current_merkle_root();
         let signing_key = agent_mut.signing_key();

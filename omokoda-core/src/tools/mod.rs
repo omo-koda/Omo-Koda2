@@ -1,12 +1,12 @@
 use async_trait::async_trait;
 use std::collections::HashMap;
-use std::fs;
 use std::path::Path;
 use std::process::Command;
 
 use crate::sandbox::WasmSandbox;
 
 pub mod sovereign;
+pub mod file_ops;
 
 #[async_trait]
 pub trait Tool: Send + Sync {
@@ -26,13 +26,14 @@ impl ToolRegistry {
             tools: HashMap::new(),
         };
         registry.register(Box::new(ReadFileTool));
+        registry.register(Box::new(WriteFileTool));
+        registry.register(Box::new(EditFileTool));
+        registry.register(Box::new(GlobTool));
+        registry.register(Box::new(GrepTool));
         registry.register(Box::new(BashTool));
         registry.register(Box::new(WasmTool));
         registry.register(Box::new(WebSearchTool));
         registry.register(Box::new(AgentOrchestrationTool));
-        // Keep these for backward compatibility in tests if needed, or remove if stubs
-        registry.register(Box::new(GlobTool));
-        registry.register(Box::new(GrepTool));
         registry
     }
 
@@ -63,6 +64,8 @@ impl ToolRegistry {
         params: &str,
         sandbox: bool,
         current_tier: u8,
+        policy: &crate::permissions::PermissionPolicy,
+        prompter: Option<&mut dyn crate::permissions::PermissionPrompter>,
     ) -> Result<String, String> {
         let tool = self
             .tools
@@ -76,6 +79,12 @@ impl ToolRegistry {
                 tool.required_tier(),
                 current_tier
             ));
+        }
+
+        // Pre-act check: Permission Policy enforcement
+        let auth_result = policy.authorize(name, params, prompter);
+        if let crate::permissions::PermissionOutcome::Deny { reason } = auth_result {
+            return Err(format!("Permission denied: {}", reason));
         }
 
         tool.execute(params, sandbox).await
@@ -103,18 +112,86 @@ impl Tool for ReadFileTool {
         "read_file"
     }
     fn description(&self) -> &str {
-        "Read a file from the workspace"
+        "Read a file from the workspace. Params: JSON with {path, offset?, limit?}"
     }
     fn required_tier(&self) -> u8 {
         0
     }
     async fn execute(&self, params: &str, _sandbox: bool) -> Result<String, String> {
-        let path = Path::new(params);
-        if path.is_absolute() || params.contains("..") {
+        // Support both raw path and JSON
+        let (path, offset, limit) = if params.starts_with('{') {
+            let v: serde_json::Value = serde_json::from_str(params).map_err(|e| e.to_string())?;
+            let path = v["path"].as_str().ok_or("missing path")?.to_string();
+            let offset = v["offset"].as_u64().map(|n| n as usize);
+            let limit = v["limit"].as_u64().map(|n| n as usize);
+            (path, offset, limit)
+        } else {
+            (params.to_string(), None, None)
+        };
+
+        if path.contains("..") || Path::new(&path).is_absolute() {
             return Err("path must be relative and within workspace (no .. allowed)".to_string());
         }
 
-        fs::read_to_string(path).map_err(|e| format!("failed to read file: {}", e))
+        let output = file_ops::read_file(&path, offset, limit)
+            .map_err(|e| format!("failed to read file: {}", e))?;
+        serde_json::to_string(&output).map_err(|e| e.to_string())
+    }
+}
+
+struct WriteFileTool;
+#[async_trait]
+impl Tool for WriteFileTool {
+    fn name(&self) -> &str {
+        "write_file"
+    }
+    fn description(&self) -> &str {
+        "Write a file to the workspace. Params: JSON with {path, content}"
+    }
+    fn required_tier(&self) -> u8 {
+        1 // Builder tier
+    }
+    async fn execute(&self, params: &str, _sandbox: bool) -> Result<String, String> {
+        let v: serde_json::Value = serde_json::from_str(params).map_err(|e| e.to_string())?;
+        let path = v["path"].as_str().ok_or("missing path")?;
+        let content = v["content"].as_str().ok_or("missing content")?;
+
+        if path.contains("..") || Path::new(&path).is_absolute() {
+            return Err("path must be relative and within workspace (no .. allowed)".to_string());
+        }
+
+        let output = file_ops::write_file(path, content)
+            .map_err(|e| format!("failed to write file: {}", e))?;
+        serde_json::to_string(&output).map_err(|e| e.to_string())
+    }
+}
+
+struct EditFileTool;
+#[async_trait]
+impl Tool for EditFileTool {
+    fn name(&self) -> &str {
+        "edit_file"
+    }
+    fn description(&self) -> &str {
+        "Edit a file in the workspace. Params: JSON with {path, old_string, new_string, replace_all?}"
+    }
+    fn required_tier(&self) -> u8 {
+        1 // Builder tier
+    }
+    async fn execute(&self, params: &str, _sandbox: bool) -> Result<String, String> {
+        let v: serde_json::Value = serde_json::from_str(params).map_err(|e| e.to_string())?;
+        let path = v["path"].as_str().ok_or("missing path")?;
+        let old_string = v["old_string"].as_str().ok_or("missing old_string")?;
+        let new_string = v["new_string"].as_str().ok_or("missing new_string")?;
+        let replace_all = v["replace_all"].as_bool().unwrap_or(false);
+
+        if path.contains("..") || Path::new(&path).is_absolute() {
+            return Err("path must be relative and within workspace (no .. allowed)".to_string());
+        }
+
+        let output = file_ops::edit_file(path, old_string, new_string, replace_all)
+            .map_err(|e| format!("failed to edit file: {}", e))?;
+        serde_json::to_string(&output).map_err(|e| e.to_string())
     }
 }
 
@@ -218,24 +295,31 @@ impl Tool for GlobTool {
         "glob"
     }
     fn description(&self) -> &str {
-        "Find files matching a pattern"
+        "Find files matching a pattern. Params: JSON with {pattern, path?}"
     }
     fn required_tier(&self) -> u8 {
         0
     }
     async fn execute(&self, params: &str, _sandbox: bool) -> Result<String, String> {
-        if params.contains("..") {
-            return Err("path must be within workspace (no .. allowed)".to_string());
+        let (pattern, path) = if params.starts_with('{') {
+            let v: serde_json::Value = serde_json::from_str(params).map_err(|e| e.to_string())?;
+            let pattern = v["pattern"].as_str().ok_or("missing pattern")?.to_string();
+            let path = v["path"].as_str().map(|s| s.to_string());
+            (pattern, path)
+        } else {
+            (params.to_string(), None)
+        };
+
+        if pattern.contains("..")
+            || Path::new(&pattern).is_absolute()
+            || path.as_ref().is_some_and(|p| p.contains("..") || Path::new(p).is_absolute())
+        {
+            return Err("path must be relative and within workspace (no .. allowed)".to_string());
         }
 
-        let mut results = Vec::new();
-        for entry in glob::glob(params).map_err(|e| format!("invalid glob pattern: {}", e))? {
-            match entry {
-                Ok(path) => results.push(path.display().to_string()),
-                Err(e) => results.push(format!("error: {}", e)),
-            }
-        }
-        Ok(results.join("\n"))
+        let output = file_ops::glob_search(&pattern, path.as_deref())
+            .map_err(|e| format!("glob search failed: {}", e))?;
+        serde_json::to_string(&output).map_err(|e| e.to_string())
     }
 }
 
@@ -246,35 +330,24 @@ impl Tool for GrepTool {
         "grep"
     }
     fn description(&self) -> &str {
-        "Search for a pattern in files"
+        "Search for a pattern in files. Params: JSON GrepSearchInput"
     }
     fn required_tier(&self) -> u8 {
         0
     }
     async fn execute(&self, params: &str, _sandbox: bool) -> Result<String, String> {
-        // Simple parser for "pattern path"
-        let parts: Vec<&str> = params.splitn(2, ' ').collect();
-        if parts.len() != 2 {
-            return Err("grep requires 'pattern path'".to_string());
-        }
-        let pattern = parts[0];
-        let path_str = parts[1];
+        let input: file_ops::GrepSearchInput = serde_json::from_str(params).map_err(|e| {
+            format!("grep requires JSON input: {}", e)
+        })?;
 
-        if path_str.contains("..") {
-            return Err("path must be within workspace (no .. allowed)".to_string());
+        if input.path.as_ref().is_some_and(|p| p.contains("..") || Path::new(p).is_absolute())
+            || input.glob.as_ref().is_some_and(|g| g.contains("..") || Path::new(g).is_absolute())
+        {
+            return Err("path must be relative and within workspace (no .. allowed)".to_string());
         }
 
-        let re = regex::Regex::new(pattern).map_err(|e| format!("invalid regex: {}", e))?;
-        let content =
-            fs::read_to_string(path_str).map_err(|e| format!("failed to read file: {}", e))?;
-
-        let mut results = Vec::new();
-        for (i, line) in content.lines().enumerate() {
-            if re.is_match(line) {
-                results.push(format!("{}: {}", i + 1, line));
-            }
-        }
-        Ok(results.join("\n"))
+        let output = file_ops::grep_search(&input).map_err(|e| format!("grep search failed: {}", e))?;
+        serde_json::to_string(&output).map_err(|e| e.to_string())
     }
 }
 

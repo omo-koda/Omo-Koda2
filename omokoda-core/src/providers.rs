@@ -1,4 +1,5 @@
 use crate::session::ConversationMessage;
+use crate::usage::TokenUsage;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -26,7 +27,7 @@ pub trait LlmProvider: Send + Sync {
         &self,
         prompt: &str,
         history: &[ConversationMessage],
-    ) -> Result<String, String>;
+    ) -> Result<(String, TokenUsage), String>;
 }
 
 pub struct ProviderRegistry {
@@ -123,7 +124,7 @@ impl ProviderRegistry {
         prompt: &str,
         history: &[ConversationMessage],
         private_mode: bool,
-    ) -> Result<String, String> {
+    ) -> Result<(String, TokenUsage), String> {
         let provider_name = provider.trim();
         if provider_name.is_empty() || provider_name.eq_ignore_ascii_case("default") {
             return self.route_think(prompt, history, private_mode).await;
@@ -170,7 +171,7 @@ impl ProviderRegistry {
         prompt: &str,
         history: &[ConversationMessage],
         private_mode: bool,
-    ) -> Result<String, String> {
+    ) -> Result<(String, TokenUsage), String> {
         let order = Self::provider_order(private_mode);
         for provider_class in order {
             for provider in self
@@ -259,7 +260,7 @@ impl LlmProvider for OllamaProvider {
         &self,
         prompt: &str,
         _history: &[ConversationMessage],
-    ) -> Result<String, String> {
+    ) -> Result<(String, TokenUsage), String> {
         let url = format!("{}/api/generate", self.metadata.endpoint);
         let body = serde_json::json!({
             "model": "llama3", // Default model
@@ -280,7 +281,15 @@ impl LlmProvider for OllamaProvider {
         }
 
         let json: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
-        Ok(json["response"].as_str().unwrap_or("").to_string())
+        let response = json["response"].as_str().unwrap_or("").to_string();
+        
+        let usage = TokenUsage {
+            input_tokens: json["prompt_eval_count"].as_u64().unwrap_or(0) as u32,
+            output_tokens: json["eval_count"].as_u64().unwrap_or(0) as u32,
+            ..Default::default()
+        };
+
+        Ok((response, usage))
     }
 }
 
@@ -317,7 +326,7 @@ impl LlmProvider for WebLLMProvider {
         &self,
         _prompt: &str,
         _history: &[ConversationMessage],
-    ) -> Result<String, String> {
+    ) -> Result<(String, TokenUsage), String> {
         Err("WebLLM provider not implemented".to_string())
     }
 }
@@ -357,7 +366,7 @@ impl LlmProvider for OpenAIProvider {
         &self,
         prompt: &str,
         history: &[ConversationMessage],
-    ) -> Result<String, String> {
+    ) -> Result<(String, TokenUsage), String> {
         let url = if self.metadata.endpoint.contains("/v1/") {
             self.metadata.endpoint.clone()
         } else {
@@ -412,10 +421,18 @@ impl LlmProvider for OpenAIProvider {
         }
 
         let json: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
-        Ok(json["choices"][0]["message"]["content"]
+        let response = json["choices"][0]["message"]["content"]
             .as_str()
             .unwrap_or("")
-            .to_string())
+            .to_string();
+
+        let usage = TokenUsage {
+            input_tokens: json["usage"]["prompt_tokens"].as_u64().unwrap_or(0) as u32,
+            output_tokens: json["usage"]["completion_tokens"].as_u64().unwrap_or(0) as u32,
+            ..Default::default()
+        };
+
+        Ok((response, usage))
     }
 }
 
@@ -454,7 +471,7 @@ impl LlmProvider for AnthropicProvider {
         &self,
         prompt: &str,
         _history: &[ConversationMessage],
-    ) -> Result<String, String> {
+    ) -> Result<(String, TokenUsage), String> {
         let url = if self.metadata.endpoint.contains("/v1/") {
             self.metadata.endpoint.clone()
         } else {
@@ -485,7 +502,17 @@ impl LlmProvider for AnthropicProvider {
         }
 
         let json: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
-        Ok(json["completion"].as_str().unwrap_or("").to_string())
+        let response = json["completion"].as_str().unwrap_or("").to_string();
+
+        // Anthropic legacy /v1/complete might not return usage in the same way, 
+        // but we'll try to extract it if it's there.
+        let usage = TokenUsage {
+            input_tokens: json["usage"]["input_tokens"].as_u64().unwrap_or(0) as u32,
+            output_tokens: json["usage"]["output_tokens"].as_u64().unwrap_or(0) as u32,
+            ..Default::default()
+        };
+
+        Ok((response, usage))
     }
 }
 
@@ -529,7 +556,7 @@ impl LlmProvider for MockProvider {
         &self,
         _prompt: &str,
         _history: &[ConversationMessage],
-    ) -> Result<String, String> {
-        Ok(self.response.clone())
+    ) -> Result<(String, TokenUsage), String> {
+        Ok((self.response.clone(), TokenUsage::default()))
     }
 }

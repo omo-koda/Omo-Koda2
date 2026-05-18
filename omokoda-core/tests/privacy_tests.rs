@@ -3,6 +3,7 @@ mod privacy_tests {
     use omokoda_core::providers::{
         MockProvider, ProviderClass, ProviderMetadata, ProviderRegistry,
     };
+    use omokoda_core::usage::TokenUsage;
 
     #[tokio::test]
     async fn allows_local_in_private() {
@@ -33,7 +34,7 @@ mod privacy_tests {
         registry.register(Box::new(MockProvider::new("mock response".to_string())));
 
         let response = registry.think("ollama", "hello", &[], false).await.unwrap();
-        assert_eq!(response, "mock response");
+        assert_eq!(response.0, "mock response");
     }
 
     #[tokio::test]
@@ -48,7 +49,7 @@ mod privacy_tests {
                 &self,
                 _: &str,
                 _: &[omokoda_core::session::ConversationMessage],
-            ) -> Result<String, String> {
+            ) -> Result<(String, TokenUsage), String> {
                 Err("local failed".to_string())
             }
         }
@@ -63,8 +64,8 @@ mod privacy_tests {
                 &self,
                 _: &str,
                 _: &[omokoda_core::session::ConversationMessage],
-            ) -> Result<String, String> {
-                Ok("browser local".to_string())
+            ) -> Result<(String, TokenUsage), String> {
+                Ok(("browser local".to_string(), TokenUsage::default()))
             }
         }
 
@@ -83,7 +84,7 @@ mod privacy_tests {
         })));
 
         let response = registry.route_think("hello", &[], false).await.unwrap();
-        assert_eq!(response, "browser local");
+        assert_eq!(response.0, "browser local");
     }
 
     #[tokio::test]
@@ -98,8 +99,8 @@ mod privacy_tests {
                 &self,
                 _: &str,
                 _: &[omokoda_core::session::ConversationMessage],
-            ) -> Result<String, String> {
-                Ok("external".to_string())
+            ) -> Result<(String, TokenUsage), String> {
+                Ok(("external".to_string(), TokenUsage::default()))
             }
         }
 
@@ -127,8 +128,8 @@ mod privacy_tests {
                 &self,
                 _: &str,
                 _: &[omokoda_core::session::ConversationMessage],
-            ) -> Result<String, String> {
-                Ok("external".to_string())
+            ) -> Result<(String, TokenUsage), String> {
+                Ok(("external".to_string(), TokenUsage::default()))
             }
         }
 
@@ -141,7 +142,7 @@ mod privacy_tests {
 
         // In public mode, it might use either (but mock is first)
         let res = registry.route_think("h", &[], false).await.unwrap();
-        assert_eq!(res, "local");
+        assert_eq!(res.0, "local");
     }
 
     #[tokio::test]
@@ -156,7 +157,7 @@ mod privacy_tests {
                 &self,
                 _: &str,
                 _: &[omokoda_core::session::ConversationMessage],
-            ) -> Result<String, String> {
+            ) -> Result<(String, TokenUsage), String> {
                 Err("local fail".to_string())
             }
         }
@@ -170,8 +171,8 @@ mod privacy_tests {
                 &self,
                 _: &str,
                 _: &[omokoda_core::session::ConversationMessage],
-            ) -> Result<String, String> {
-                Ok("external".to_string())
+            ) -> Result<(String, TokenUsage), String> {
+                Ok(("external".to_string(), TokenUsage::default()))
             }
         }
 
@@ -194,3 +195,4 @@ mod privacy_tests {
         assert!(res.unwrap_err().contains("HARD FAIL"));
     }
 }
+

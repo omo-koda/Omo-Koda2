@@ -367,7 +367,9 @@ act "read_file" "test_multi.txt""#;
         std::fs::remove_file(test_file).unwrap();
 
         assert!(result.tool_output.is_some());
-        assert_eq!(result.tool_output.unwrap(), "real file content");
+        let output = result.tool_output.unwrap();
+        assert!(output.contains("real file content"));
+        assert!(output.contains("\"file\":"));
     }
 
     #[test]

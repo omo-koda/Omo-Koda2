@@ -31,7 +31,7 @@ mod provider_tests {
         );
 
         let response = provider.generate("hello there", &[]).await.unwrap();
-        assert_eq!(response, "openai reply");
+        assert_eq!(response.0, "openai reply");
         mock.assert_async().await;
     }
 
@@ -58,7 +58,7 @@ mod provider_tests {
         );
 
         let response = provider.generate("hello there", &[]).await.unwrap();
-        assert_eq!(response, "anthropic reply");
+        assert_eq!(response.0, "anthropic reply");
         mock.assert_async().await;
     }
 
@@ -98,8 +98,8 @@ mod provider_tests {
             .await
             .unwrap();
 
-        assert_eq!(openai_result, "openai reply");
-        assert_eq!(anthropic_result, "anthropic reply");
+        assert_eq!(openai_result.0, "openai reply");
+        assert_eq!(anthropic_result.0, "anthropic reply");
         openai_mock.assert_async().await;
         anthropic_mock.assert_async().await;
     }
@@ -125,7 +125,7 @@ mod provider_tests {
             false,
         )];
         let response = provider.generate("follow up", &history).await.unwrap();
-        assert_eq!(response, "chat reply");
+        assert_eq!(response.0, "chat reply");
         mock.assert_async().await;
     }
 }
