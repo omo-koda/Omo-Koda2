@@ -58,6 +58,7 @@ A daily resonance engine that modulates agent behavior based on the time-stream,
 2.  **Sealed Memory**: Private thoughts never leak to external providers.
 3.  **Immutable Receipts**: Every `act` generates a cryptographically signed receipt.
 4.  **Tier Enforcement**: Reputation strictly controls tool access.
+5.  **Workspace Integrity**: Boundary validation ensures all operations stay within the defined environment, actively preventing directory traversal and unauthorized external access.
 
 ---
 
