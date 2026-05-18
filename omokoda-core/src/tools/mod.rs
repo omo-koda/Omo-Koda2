@@ -208,6 +208,14 @@ impl Tool for BashTool {
         2 // Creator tier
     }
     async fn execute(&self, params: &str, sandbox: bool) -> Result<String, String> {
+        // P0 Security: Validate bash commands to prevent injection
+        let allowed_commands = ["git", "ls", "grep", "cat", "find", "cd"];
+        let command_base = params.split_whitespace().next().unwrap_or("");
+
+        if !allowed_commands.contains(&command_base) {
+            return Err(format!("Command '{}' is not allowed. Allowed: {:?}", command_base, allowed_commands));
+        }
+
         if sandbox && params.contains("..") {
             return Err("sandboxed bash commands must not contain '..'".to_string());
         }
